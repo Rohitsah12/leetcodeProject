@@ -1,0 +1,8 @@
+# Dependency directory
+node_modules/
+
+# Environment variables
+.env
+
+# Optional: Ignore lock file (only if your team decides)
+package-lock.json
