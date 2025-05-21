@@ -1,84 +1,84 @@
-const mongoose=require('mongoose')
-const {Schema}=mongoose;
+const mongoose = require('mongoose');
+const { Schema } = mongoose;
 
-const problemSchema=new Schema({
-    title:{
-        type:String,
-        required:true
+const problemSchema = new Schema({
+    title: {
+        type: String,
+        required: true
     },
-    description:{
-        type:String,
-        required:true
+    description: {
+        type: String,
+        required: true
     },
-    difficulty:{
-        type:String,
-        enum:['easy','medium','hard'],
-        required:true,
+    difficulty: {
+        type: String,
+        enum: ['easy', 'medium', 'hard'],
+        required: true,
     },
-    tags:{
-        type:String,
-        enum:['array','linkedlist','graph','dp'],
-        reqired:true,
+    tags: {
+        type: [String], // changed from String to array of strings
+        enum: ['array', 'linkedlist', 'graph', 'dp'],
+        required: true,
     },
-    visibleTestCases:[
+    visibleTestCases: [
         {
-            input:{
-                type:String,
-                required:true,
+            input: {
+                type: String,
+                required: true,
             },
-            output:{
-                type:String,
-                required:true,
+            output: {
+                type: String,
+                required: true,
             },
-            explaination:{
-                type:String,
-                required:true,
+            explaination: {
+                type: String,
+                required: true,
             }
         }
     ],
-    hiddenTestCases:[
+    hiddenTestCases: [
         {
-            input:{
-                type:String,
-                required:true,
+            input: {
+                type: String,
+                required: true,
             },
-            output:{
-                type:String,
-                required:true,
+            output: {
+                type: String,
+                required: true,
             }
         }
     ],
-    startCode:[
+    startCode: [
         {
-            language:{
-                type:String,
-                required:true,
+            language: {
+                type: String,
+                required: true,
             },
-            initialCode:{
-                type:String,
-                required:true,
+            initialCode: {
+                type: String,
+                required: true,
             }
         }
     ],
-    referenceSolution:[
+    referenceSolution: [
         {
-            language:{
-                type:String,
-                required:true,
+            language: {
+                type: String,
+                required: true,
             },
-            completeCode:{
-                type:String,
-                required:true,
+            completeCode: {
+                type: String,
+                required: true,
             }
         }
     ],
-    problemCreator:{
-        type:Schema.Types.ObjectId,
-        ref:'user',
-        required:true
+    problemCreator: {
+        type: Schema.Types.ObjectId,
+        ref: 'user',
+        required: true
     }
-})
+});
 
-const Problem=mongoose.model('problem',problemSchema);
+const Problem = mongoose.model('problem', problemSchema);
 
-module.exports=Problem;
+module.exports = Problem;

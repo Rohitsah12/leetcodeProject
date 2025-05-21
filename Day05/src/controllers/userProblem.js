@@ -1,54 +1,52 @@
+const { getLanguageById, submitBatch, submitToken } = require("../utils/problemUtility");
 const Problem = require("../models/problem");
-const {getLanguageById,submitBatch} = require("../utils/problemUtility");
 
-const createProblem=async (req,res)=>{
-    const {title,description,difficulty,
-        tags,visibleTestCases,hiddenTestCases,
-        startCode,referenceSolution,problemCreator}=req.body;
+const createProblem = async (req, res) => {
+  const {
+    title, description, difficulty, tags,
+    visibleTestCases, hiddenTestCases, startCode,
+    referenceSolution, problemCreator
+  } = req.body;
 
-    try {
-        
-        for(const {language,completeCode} of referenceSolution){
-            //source_code:
-            //language_id:
-            //stdin:
-            //expected_output
+  try {
+    for (const { language, completeCode } of referenceSolution) {
+      const languageId = getLanguageById(language);
 
-            const languageId=getLanguageById(language);
+      if (!languageId) {
+        return res.status(400).send(`Unsupported language: ${language}`);
+      }
 
-            const submission=visibleTestCases.map((testcase)=>({
-                source_code:completeCode,
-                language_id:languageId,
-                stdin:testcase.input,
-                expected_output:testcase.output
-            }))
+      const submissions = visibleTestCases.map((testcase) => ({
+        source_code: completeCode,
+        language_id: languageId,
+        stdin: testcase.input || "",
+        expected_output: testcase.output || ""
+      }));
 
-            const submitResult=await submitBatch(submission);
+      console.log("Submissions Payload:", JSON.stringify(submissions, null, 2));
 
-            const resultToken=submitResult.map((value)=>value.token);
+      const submitResult = await submitBatch(submissions);
+      const resultTokens = submitResult.map((value) => value.token);
+      const testResults = await submitToken(resultTokens);
 
-            //[token1,token2,token3]
-
-            const testResult= await submitToken(resultToken);
-
-            for(const test of testResult){
-                if(test.status_id!=3){
-                    return res.status(400).send("Error Occured");
-                }
-            }
+      for (const test of testResults) {
+        if (test.status_id !== 3) {
+          return res.status(400).send("Error: One or more test cases failed.");
         }
-        //we can store it in D.B
-
-        await Problem.create({
-            ...req.body,
-            problemCreator:req.result._id
-        })
-
-        res.status(201).send("Problen Saved Successfully");
-
-    } catch (error) {
-        res.send("Error: "+error);
+      }
     }
-}
 
-module.exports=createProblem;
+    const userProblem = await Problem.create({
+      ...req.body,
+      problemCreator: req.result._id
+    });
+
+    res.status(201).send("Problem Saved Successfully");
+
+  } catch (err) {
+    console.error("createProblem error", err?.response?.data || err.message);
+    res.status(400).send("Error: " + (err?.response?.data || err.message));
+  }
+};
+
+module.exports = createProblem;
