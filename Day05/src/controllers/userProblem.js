@@ -29,6 +29,9 @@ const createProblem = async (req, res) => {
       const resultTokens = submitResult.map((value) => value.token);
       const testResults = await submitToken(resultTokens);
 
+      console.log(testResults);
+      
+
       for (const test of testResults) {
         if (test.status_id !== 3) {
           return res.status(400).send("Error: One or more test cases failed.");
