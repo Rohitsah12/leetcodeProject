@@ -50,6 +50,8 @@ const createProblem = async (req, res) => {
 };
 
 const updateProblem= async (req,res)=>{
+  console.log(req.params);
+  console.log("req body"+ req.body)
   const {id}=req.params;
   const {
     title, description, difficulty, tags,
@@ -128,7 +130,7 @@ const getProblemById=async (req,res)=>{
       return res.status(400).send("missing id field")
     }
 
-    const getProblem=await Problem.findByIdAndDelete(id);
+    const getProblem=await Problem.findById(id).select('title description difficulty tags visibleTestCases startCode referenceSolution problemCreator');
     if(!getProblem){
       return res.status(404).send("Problem is missing");
     }
@@ -142,7 +144,7 @@ const getProblemById=async (req,res)=>{
 const getAllProblem=async (req,res)=>{
 
   try {
-    const getProblem=await Problem.find({});
+    const getProblem=await Problem.find({}).select('_id title difficulty tags');
     if(getProblem.length==0){
       return res.status(404).send("Problem is missing");
     }
