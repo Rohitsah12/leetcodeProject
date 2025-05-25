@@ -1,5 +1,6 @@
 const { getLanguageById, submitBatch, submitToken } = require("../utils/problemUtility");
 const Problem = require("../models/problem");
+const User = require("../models/user");
 
 const createProblem = async (req, res) => {
   const {
@@ -158,4 +159,21 @@ const getAllProblem=async (req,res)=>{
   }
 }
 
-module.exports ={createProblem,updateProblem,deleteProblem,getProblemById,getAllProblem};
+const solvedAllProblembyUser=async (req,res)=>{
+  try {
+    // const count=req.result.problemSolved.length;
+
+    const userId=req.result._id;
+    const user=await User.findById(userId).populate(
+      {
+        path:"problemSolved",
+        select:"_id title difficulty tags"
+      }
+    );
+    res.status(200).send(user.problemSolved);
+  } catch (error) {
+    res.status(500).send("Server error")
+  }
+}
+
+module.exports ={createProblem,updateProblem,deleteProblem,getProblemById,getAllProblem,solvedAllProblembyUser};

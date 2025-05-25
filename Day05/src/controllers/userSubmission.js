@@ -1,5 +1,6 @@
 const Problem=require("../models/problem")
 const Submission=require("../models/submission");
+const User = require("../models/user");
 const { getLanguageById, submitBatch, submitToken } = require("../utils/problemUtility");
 
 
@@ -77,6 +78,13 @@ const submitCode=async (req,res)=>{
 
         await submittedResult.save();
 
+        //Problem id ko insert krenge userSchema ke problem solved mein if it is not present there
+
+        if(!req.result.problemSolved.includes(problemId)){
+            req.result.problemSolved.push(problemId);
+            await req.result.save();
+        }
+
         res.status(201).send(submittedResult)
 
         
@@ -87,7 +95,47 @@ const submitCode=async (req,res)=>{
     }
 }
 
-module.exports=submitCode;
+const runCode=async (req,res)=>{
+     try {
+        const userId=req.result._id;
+        const problemId=req.params.id;
+        const {code,language}=req.body;
+
+        if(!userId || !code || !problemId || !language){
+            return res.status(400).send("Some field missing");
+        }
+
+
+        //fetch the problem from the databases
+
+        const problem=await Problem.findById(problemId);
+
+
+        //judg0 ko code submit krna h
+
+        const languageId=getLanguageById(language);
+        const submissions = problem.visibleTestCases.map((testcase) => ({
+            source_code: code,
+            language_id: languageId,
+            stdin: testcase.input || "",
+            expected_output: testcase.output || ""
+        }));
+        const submitResult = await submitBatch(submissions);
+        const resultTokens = submitResult.map((value) => value.token);
+        const testResults = await submitToken(resultTokens);
+
+  
+
+        res.status(201).send(testResults)
+
+        
+        
+
+    } catch (error) {
+       res.status(500).send("Internal server error "+error);
+    }
+}
+module.exports={submitCode,runCode};
 
 //  language_id: 62,
 //     stdin: '-1 5',
