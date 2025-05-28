@@ -20,8 +20,17 @@ const register=async (req,res)=>{
 
         const token=jwt.sign({_id:user._id,emailId:emailId,role:'user'},process.env.JWT_KEY,{expiresIn:3600});
 
+        const reply={
+            firstName:user.firstName,
+            emailId:user.emailId,
+            _id:user._id
+        }
+
         res.cookie('token',token,{maxAge:60*60*1000})
-        res.status(201).send("User Registered Successfully");
+        res.status(201).json({
+            user:reply,
+            message:"loggin Successfully"
+        })  
     } catch (error) {
         res.status(400).send("Error:"+error);
     }
@@ -44,10 +53,20 @@ const login=async (req,res)=>{
 
         if(!match)
             throw new Error("Ivalid Credentials");
+
+
+        const reply={
+            firstName:user.firstName,
+            emailId:user.emailId,
+            _id:user._id
+        }
         const token=jwt.sign({_id:user._id,emailId:emailId,role:user.role},process.env.JWT_KEY,{expiresIn:3600});
 
         res.cookie('token',token,{maxAge:60*60*1000})
-        res.status(200).send("Loged In Successfully");   
+        res.status(201).json({
+            user:reply,
+            message:"loggin Successfully"
+        })   
     } catch (error) {
         res.status(401).send("Error: ",error)
     }
