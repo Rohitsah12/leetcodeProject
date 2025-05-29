@@ -6,6 +6,7 @@ import { checkAuth } from "./authSlice"
 import { useDispatch,useSelector } from "react-redux"
 import { useEffect } from "react"
 import AdminPanel from "./pages/AdminPanel"
+import CodeEditor from "./pages/CodeEditor"
 
 function App() {
 
@@ -29,6 +30,7 @@ function App() {
         <Route path="/login" element={isAuthenticated?<Navigate to='/'/>:<Login></Login>}></Route>
         <Route path="/signup" element={isAuthenticated?<Navigate to='/'/>:<Signup></Signup>}></Route>
         <Route path="/admin" element={isAuthenticated && user?.role==='admin'? <AdminPanel></AdminPanel> :<Navigate to='/'></Navigate>}></Route>
+        <Route path="/code" element={<CodeEditor />}></Route>
       </Routes>
     </>
   )
