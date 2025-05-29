@@ -10,7 +10,7 @@ import AdminPanel from "./pages/AdminPanel"
 function App() {
 
   //code likhna pdega isAuthenticated or not
-  const {isAuthenticated,loading}=useSelector((state)=>state.auth);
+  const {isAuthenticated,loading,user}=useSelector((state)=>state.auth);
   const dispatch=useDispatch();
   useEffect(()=>{
     dispatch(checkAuth());
@@ -28,7 +28,7 @@ function App() {
         <Route path="/" element={isAuthenticated?<HomePage></HomePage>:<Navigate to='/signup'/>}></Route>
         <Route path="/login" element={isAuthenticated?<Navigate to='/'/>:<Login></Login>}></Route>
         <Route path="/signup" element={isAuthenticated?<Navigate to='/'/>:<Signup></Signup>}></Route>
-        <Route path="/admin" element={<AdminPanel></AdminPanel>}></Route>
+        <Route path="/admin" element={isAuthenticated && user?.role==='admin'? <AdminPanel></AdminPanel> :<Navigate to='/'></Navigate>}></Route>
       </Routes>
     </>
   )
