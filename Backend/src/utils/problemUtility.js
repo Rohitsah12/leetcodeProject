@@ -3,7 +3,7 @@ const axios = require('axios');
 // Language mapping
 const getLanguageById = (lang) => {
   const language = {
-    "cpp": 54,
+    "c++": 54,
     "java": 62,
     "javascript": 63
   };
