@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
-import { NavLink } from 'react-router'; // Fixed import
+import { NavLink, useNavigate } from 'react-router'; // Fixed import
 import { useDispatch, useSelector } from 'react-redux';
 import axiosClient from '../utils/axiosClient';
 import { logoutUser } from '../authSlice';
 
 function Homepage() {
+  const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { user } = useSelector((state) => state.auth);
+  const { user,isAuthenticated } = useSelector((state) => state.auth);
   const [problems, setProblems] = useState([]);
   const [solvedProblems, setSolvedProblems] = useState([]);
   const [filters, setFilters] = useState({
@@ -51,6 +52,10 @@ function Homepage() {
     return difficultyMatch && tagMatch && statusMatch;
   });
 
+  const accessAdminPanel=()=>{
+    navigate('/admin')
+  }
+
   return (
     <div className="min-h-screen bg-base-200">
       {/* Navigation Bar */}
@@ -58,6 +63,14 @@ function Homepage() {
         <div className="flex-1">
           <NavLink to="/" className="btn btn-ghost text-xl">LeetCode</NavLink>
         </div>
+        {
+          isAuthenticated && user.role === 'admin' ? (
+            <button onClick={accessAdminPanel}>
+              Access Admin Panel
+            </button>
+          ) : null
+        }
+
         <div className="flex-none gap-4">
           <div className="dropdown dropdown-end">
             <div tabIndex={0} className="btn btn-ghost">
