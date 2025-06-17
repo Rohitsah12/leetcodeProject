@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import Editor from '@monaco-editor/react';
 import { useParams } from 'react-router';
 import axiosClient from "../utils/axiosClient"
+import SubmissionHistory from '../components/SubmissionHistory';
 
 
 const ProblemPage = () => {
@@ -396,7 +397,7 @@ const ProblemPage = () => {
                 <div>
                   <h2 className="text-xl font-bold mb-4">My Submissions</h2>
                   <div className="text-gray-500">
-                    Your submission history will appear here.
+                    <SubmissionHistory problemId={problemId} />
                   </div>
                 </div>
               )}

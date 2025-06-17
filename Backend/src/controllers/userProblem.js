@@ -177,18 +177,23 @@ const solvedAllProblembyUser=async (req,res)=>{
   }
 }
 
-const submittedProblem=async (req,res)=>{
+const submittedProblem = async (req, res) => {
   try {
-    const userId=req.result._id;
-    const problemId=req.params.pid;
+    const userId = req.result._id;
+    const problemId = req.params.id;
+    console.log("User ID:", userId);
+    console.log("Problem ID:", problemId);  
 
-    const ans=await Submission.find({userId,problemId});
+    const ans = await Submission.find({ userId, problemId });
     res.status(200).send(ans);
-    if(ans.length==0){
-      res.status(200).send("No submission")
-    }
+
+    // Always respond with an array (even if empty)
+    // res.status(200).json(ans);
+
   } catch (error) {
-    res.status(500).send("Internal sever error: "+error);
+    res.status(500).send("Internal server error: " + error);
   }
-}
+};
+
+
 module.exports ={createProblem,updateProblem,deleteProblem,getProblemById,getAllProblem,solvedAllProblembyUser,submittedProblem};

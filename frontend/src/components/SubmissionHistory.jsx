@@ -12,8 +12,14 @@ const SubmissionHistory = ({ problemId }) => {
       try {
         setLoading(true);
         const response = await axiosClient.get(`/problem/submittedProblem/${problemId}`);
-        setSubmissions(response.data);
-        setError(null);
+
+        if (Array.isArray(response.data)) {
+          setSubmissions(response.data);
+          setError(null);
+        } else {
+          setSubmissions([]);
+          setError('No submissions found for this problem');
+        }
       } catch (err) {
         setError('Failed to fetch submission history');
         console.error(err);
@@ -26,16 +32,25 @@ const SubmissionHistory = ({ problemId }) => {
   }, [problemId]);
 
   const getStatusColor = (status) => {
-    switch (status) {
-      case 'accepted': return 'badge-success';
-      case 'wrong': return 'badge-error';
-      case 'error': return 'badge-warning';
-      case 'pending': return 'badge-info';
-      default: return 'badge-neutral';
+    const statusLower = (status || '').toLowerCase();
+    switch (statusLower) {
+      case 'accepted': 
+        return 'badge-success';
+      case 'wrong answer': 
+      case 'wrong': 
+        return 'badge-error';
+      case 'runtime error': 
+      case 'error': 
+        return 'badge-warning';
+      case 'pending': 
+        return 'badge-info';
+      default: 
+        return 'badge-neutral';
     }
   };
 
   const formatMemory = (memory) => {
+    if (memory === undefined || memory === null) return 'N/A';
     if (memory < 1024) return `${memory} kB`;
     return `${(memory / 1024).toFixed(2)} MB`;
   };
@@ -68,7 +83,7 @@ const SubmissionHistory = ({ problemId }) => {
   return (
     <div className="container mx-auto p-4">
       <h2 className="text-2xl font-bold mb-6 text-center">Submission History</h2>
-      
+
       {submissions.length === 0 ? (
         <div className="alert alert-info shadow-lg">
           <div>
@@ -98,23 +113,26 @@ const SubmissionHistory = ({ problemId }) => {
                 {submissions.map((sub, index) => (
                   <tr key={sub._id}>
                     <td>{index + 1}</td>
-                    <td className="font-mono">{sub.language}</td>
+                    <td className="font-mono">{sub.language || 'N/A'}</td>
                     <td>
                       <span className={`badge ${getStatusColor(sub.status)}`}>
-                        {sub.status.charAt(0).toUpperCase() + sub.status.slice(1)}
+                        {sub.status || 'Unknown'}
                       </span>
                     </td>
-                    
-                    <td className="font-mono">{sub.runtime}sec</td>
+                    <td className="font-mono">{sub.runtime !== undefined ? `${sub.runtime} sec` : 'N/A'}</td>
                     <td className="font-mono">{formatMemory(sub.memory)}</td>
-                    <td className="font-mono">{sub.testCasesPassed}/{sub.testCasesTotal}</td>
-                    <td>{formatDate(sub.createdAt)}</td>
+                    <td className="font-mono">
+                      {sub.testCasesPassed !== undefined && sub.testCasesTotal !== undefined
+                        ? `${sub.testCasesPassed}/${sub.testCasesTotal}`
+                        : 'N/A'}
+                    </td>
+                    <td>{sub.createdAt ? formatDate(sub.createdAt) : 'N/A'}</td>
                     <td>
-                      <button 
-                        className="btn btn-s btn-outline"
+                      <button
+                        className="btn btn-xs btn-outline"
                         onClick={() => setSelectedSubmission(sub)}
                       >
-                        Code
+                        View Code
                       </button>
                     </td>
                   </tr>
@@ -134,25 +152,31 @@ const SubmissionHistory = ({ problemId }) => {
         <div className="modal modal-open">
           <div className="modal-box w-11/12 max-w-5xl">
             <h3 className="font-bold text-lg mb-4">
-              Submission Details: {selectedSubmission.language}
+              Submission Details: {selectedSubmission.language || 'Unknown Language'}
             </h3>
-            
+
             <div className="mb-4">
               <div className="flex flex-wrap gap-2 mb-2">
                 <span className={`badge ${getStatusColor(selectedSubmission.status)}`}>
-                  {selectedSubmission.status}
+                  {selectedSubmission.status || 'Unknown Status'}
                 </span>
-                <span className="badge badge-outline">
-                  Runtime: {selectedSubmission.runtime}s
-                </span>
-                <span className="badge badge-outline">
-                  Memory: {formatMemory(selectedSubmission.memory)}
-                </span>
-                <span className="badge badge-outline">
-                  Passed: {selectedSubmission.testCasesPassed}/{selectedSubmission.testCasesTotal}
-                </span>
+                {selectedSubmission.runtime !== undefined && (
+                  <span className="badge badge-outline">
+                    Runtime: {selectedSubmission.runtime} sec
+                  </span>
+                )}
+                {selectedSubmission.memory !== undefined && (
+                  <span className="badge badge-outline">
+                    Memory: {formatMemory(selectedSubmission.memory)}
+                  </span>
+                )}
+                {selectedSubmission.testCasesPassed !== undefined && (
+                  <span className="badge badge-outline">
+                    Passed: {selectedSubmission.testCasesPassed}/{selectedSubmission.testCasesTotal}
+                  </span>
+                )}
               </div>
-              
+
               {selectedSubmission.errorMessage && (
                 <div className="alert alert-error mt-2">
                   <div>
@@ -161,13 +185,13 @@ const SubmissionHistory = ({ problemId }) => {
                 </div>
               )}
             </div>
-            
-            <pre className="p-4 bg-gray-900 text-gray-100 rounded overflow-x-auto">
-              <code>{selectedSubmission.code}</code>
+
+            <pre className="p-4 bg-gray-900 text-gray-100 rounded overflow-x-auto max-h-96">
+              <code>{selectedSubmission.code || 'No code available'}</code>
             </pre>
-            
+
             <div className="modal-action">
-              <button 
+              <button
                 className="btn"
                 onClick={() => setSelectedSubmission(null)}
               >
