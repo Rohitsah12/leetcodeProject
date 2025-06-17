@@ -38,6 +38,8 @@ const problemSchema = z.object({
 });
 
 function AdminPanel() {
+  // console.log('In the admin panel');
+  
   const navigate = useNavigate();
   const {
     register,
@@ -48,7 +50,7 @@ function AdminPanel() {
     resolver: zodResolver(problemSchema),
     defaultValues: {
       startCode: [
-        { language: 'C++', initialCode: '' },
+        { lancguage: 'C++', initialCode: '' },
         { language: 'Java', initialCode: '' },
         { language: 'JavaScript', initialCode: '' }
       ],
