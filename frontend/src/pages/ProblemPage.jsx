@@ -4,6 +4,7 @@ import Editor from '@monaco-editor/react';
 import { useParams } from 'react-router';
 import axiosClient from "../utils/axiosClient"
 import SubmissionHistory from '../components/SubmissionHistory';
+import ChatAI from '../components/ChatAI';
 
 
 const ProblemPage = () => {
@@ -324,6 +325,12 @@ const ProblemPage = () => {
           >
             Submissions
           </button>
+          <button
+          className={`tab ${activeLeftTab === 'chatAI' ? 'tab-active' : ''}`}
+          onClick={() => setActiveLeftTab('chatAI')}
+          >
+            Chat AI
+          </button>
         </div>
 
         {/* Left Content */}
@@ -403,8 +410,20 @@ const ProblemPage = () => {
               )}
             </>
           )}
+          {activeLeftTab === 'chatAI' && (
+                <div className="prose max-w-none">
+                  <h2 className="text-xl font-bold mb-4">Chat With AI</h2>
+                  <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                    <ChatAI />
+                  </div>
+                </div>
+      )}
         </div>
+
+        
       </div>
+
+      
 
       {/* Right Panel */}
       <div className="w-1/2 flex flex-col">
