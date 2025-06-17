@@ -63,13 +63,13 @@ function Homepage() {
         <div className="flex-1">
           <NavLink to="/" className="btn btn-ghost text-xl">LeetCode</NavLink>
         </div>
-        {
+        {/* {
           isAuthenticated && user.role === 'admin' ? (
             <button onClick={accessAdminPanel}>
               Access Admin Panel
             </button>
           ) : null
-        }
+        } */}
 
         <div className="flex-none gap-4">
           <div className="dropdown dropdown-end">
@@ -78,6 +78,7 @@ function Homepage() {
             </div>
             <ul className="mt-3 p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52">
               <li><button onClick={handleLogout}>Logout</button></li>
+              {user.role== 'admin' && <li><NavLink to='/admin'>Admin</NavLink></li>}
             </ul>
           </div>
         </div>
