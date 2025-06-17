@@ -414,7 +414,7 @@ const ProblemPage = () => {
                 <div className="prose max-w-none">
                   <h2 className="text-xl font-bold mb-4">Chat With AI</h2>
                   <div className="whitespace-pre-wrap text-sm leading-relaxed">
-                    <ChatAI />
+                    <ChatAI problem={problem} />
                   </div>
                 </div>
       )}
