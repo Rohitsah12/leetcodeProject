@@ -178,10 +178,9 @@ const getProblemById = async(req,res)=>{
    const videos = await SolutionVideo.findOne({problemId:id});
 
    if(videos){    
-      getProblem.secureUrl = secureUrl;
-      getProblem.cloudinaryPublicId = cloudinaryPublicId;
-      getProblem.thumbnailUrl = thumbnailUrl;
-      getProblem.duration = duration;
+      getProblem.secureUrl = videos.secureUrl;
+      getProblem.thumbnailUrl = videos.thumbnailUrl;
+      getProblem.duration = videos.duration;
 
       return res.status(200).send(getProblem);
    }
@@ -231,25 +230,29 @@ const solvedAllProblembyUser =  async(req,res)=>{
     }
 }
 
-const submittedProblem = async(req,res)=>{
-
-  try{
-     
+const submittedProblem = async (req, res) => {
+  try {
     const userId = req.result._id;
-    const problemId = req.params.pid;
+    const problemId = req.params.id;
 
-   const ans = await Submission.find({userId,problemId});
-  
-  if(ans.length==0)
-    res.status(200).send("No Submission is persent");
+    console.log(userId);
+    console.log(problemId);
+    
+    const ans = await Submission.find({ userId, problemId });
+    
+    
 
-  res.status(200).send(ans);
+    if (ans.length === 0) {
+      return res.status(200).send("No Submission is present");
+    }
 
+    return res.status(200).json(ans);
+    
+  } catch (err) {
+    return res.status(500).send("Internal Server Error");
   }
-  catch(err){
-     res.status(500).send("Internal Server Error");
-  }
-}
+};
+
 
 
 
