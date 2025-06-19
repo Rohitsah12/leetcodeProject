@@ -175,7 +175,7 @@ const getProblemById = async(req,res)=>{
    if(!getProblem)
     return res.status(404).send("Problem is Missing");
 
-   const videos = await SolutionVideo.find({problemId:id});
+   const videos = await SolutionVideo.findOne({problemId:id});
 
    if(videos){    
       getProblem.secureUrl = secureUrl;

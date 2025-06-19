@@ -2,7 +2,7 @@ const cloudinary = require('cloudinary').v2;
 const Problem = require("../models/problem");
 const User = require("../models/user");
 const SolutionVideo = require("../models/solutionVideo");
-// const { sanitizeFilter } = require('mongoose');
+const { sanitizeFilter } = require('mongoose');
 
 
 cloudinary.config({
@@ -13,7 +13,7 @@ cloudinary.config({
 
 const generateUploadSignature = async (req, res) => {
   try {
-    const { problemId  } = req.params;
+    const { problemId } = req.params;
     
     const userId = req.result._id;
     // Verify problem exists
@@ -44,7 +44,7 @@ const generateUploadSignature = async (req, res) => {
       public_id: publicId,
       api_key: process.env.CLOUDINARY_API_KEY,
       cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-      upload_url: `https://api.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/video/upload`,
+      upload_url: `https://api.cloudinary.com/v1_1/${process.env.CLOUDINARY_CLOUD_NAME}/video/upload`,
     });
 
   } catch (error) {
@@ -97,7 +97,7 @@ const saveVideoMetadata = async (req, res) => {
     });
 
     // Create video solution record
-    const videoSolution = new SolutionVideo({
+    const videoSolution = await SolutionVideo.create({
       problemId,
       userId,
       cloudinaryPublicId,
@@ -106,16 +106,14 @@ const saveVideoMetadata = async (req, res) => {
       thumbnailUrl
     });
 
-    await SolutionVideo.save();
-
 
     res.status(201).json({
       message: 'Video solution saved successfully',
       videoSolution: {
-        id: SolutionVideo._id,
-        thumbnailUrl: SolutionVideo.thumbnailUrl,
-        duration: SolutionVideo.duration,
-        uploadedAt: SolutionVideo.createdAt
+        id: videoSolution._id,
+        thumbnailUrl: videoSolution.thumbnailUrl,
+        duration: videoSolution.duration,
+        uploadedAt: videoSolution.createdAt
       }
     });
 
@@ -128,11 +126,13 @@ const saveVideoMetadata = async (req, res) => {
 
 const deleteVideo = async (req, res) => {
   try {
-    const { videoId } = req.params;
+    const { problemId } = req.params;
     const userId = req.result._id;
 
-    const video = await SolutionVideo.findByIdAndDelete(videoId);
+    const video = await SolutionVideo.findOneAndDelete({problemId:problemId});
     
+   
+
     if (!video) {
       return res.status(404).json({ error: 'Video not found' });
     }
