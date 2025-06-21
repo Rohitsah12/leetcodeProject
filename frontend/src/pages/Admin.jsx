@@ -46,7 +46,7 @@ function Admin() {
   ];
 
   return (
-    <div className="min-h-screen bg-base-200">
+    <div className="min-h-screen ">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-12">
@@ -65,7 +65,7 @@ function Admin() {
             return (
               <div
                 key={option.id}
-                className="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer"
+                className="card shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer"
               >
                 <div className="card-body items-center text-center p-8">
                   {/* Icon */}

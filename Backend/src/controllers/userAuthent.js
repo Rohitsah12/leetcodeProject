@@ -136,4 +136,28 @@ const deleteProfile=async (req,res)=>{
     res.status(200).send("Deleted Successfully");
     }
 }
+
+// Add this to userAuthent.js
+exports.googleAuthCallback = (req, res) => {
+  // Generate JWT token
+  const token = jwt.sign(
+    {
+      _id: req.user._id,
+      emailId: req.user.emailId,
+      role: req.user.role
+    },
+    process.env.JWT_KEY,
+    { expiresIn: '1h' }
+  );
+
+  // Set HTTP-only cookie
+  res.cookie('token', token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    maxAge: 60 * 60 * 1000 // 1 hour
+  });
+
+  res.redirect(`${process.env.FRONTEND_URL}`);
+};
 module.exports={register,login,logout,adminRegister,deleteProfile}

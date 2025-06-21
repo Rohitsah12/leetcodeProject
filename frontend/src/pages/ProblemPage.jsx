@@ -297,11 +297,11 @@ const ProblemPage = () => {
   }
 
   return (
-    <div className="h-screen flex bg-base-100">
+    <div className="h-screen flex ">
       {/* Left Panel */}
       <div className="w-1/2 flex flex-col border-r border-base-300">
         {/* Left Tabs */}
-        <div className="tabs tabs-bordered bg-base-200 px-4">
+        <div className="tabs tabs-bordered  px-4">
           <button 
             className={`tab ${activeLeftTab === 'description' ? 'tab-active' : ''}`}
             onClick={() => setActiveLeftTab('description')}
@@ -358,7 +358,7 @@ const ProblemPage = () => {
                     <h3 className="text-lg font-semibold mb-4">Examples:</h3>
                     <div className="space-y-4">
                       {problem.visibleTestCases.map((example, index) => (
-                        <div key={index} className="bg-base-200 p-4 rounded-lg">
+                        <div key={index} className=" p-4 rounded-lg">
                           <h4 className="font-semibold mb-2">Example {index + 1}:</h4>
                           <div className="space-y-2 text-sm font-mono">
                             <div><strong>Input:</strong> {example.input}</div>
@@ -387,11 +387,11 @@ const ProblemPage = () => {
                   <div className="space-y-6">
                     {problem.referenceSolution?.map((solution, index) => (
                       <div key={index} className="border border-base-300 rounded-lg">
-                        <div className="bg-base-200 px-4 py-2 rounded-t-lg">
+                        <div className=" px-4 py-2 rounded-t-lg">
                           <h3 className="font-semibold">{problem?.title} - {solution?.language}</h3>
                         </div>
                         <div className="p-4">
-                          <pre className="bg-base-300 p-4 rounded text-sm overflow-x-auto">
+                          <pre className=" p-4 rounded text-sm overflow-x-auto">
                             <code>{solution?.completeCode}</code>
                           </pre>
                         </div>
@@ -429,7 +429,7 @@ const ProblemPage = () => {
       {/* Right Panel */}
       <div className="w-1/2 flex flex-col">
         {/* Right Tabs */}
-        <div className="tabs tabs-bordered bg-base-200 px-4">
+        <div className="tabs tabs-bordered  px-4">
           <button 
             className={`tab ${activeRightTab === 'code' ? 'tab-active' : ''}`}
             onClick={() => setActiveRightTab('code')}
@@ -545,7 +545,7 @@ const ProblemPage = () => {
                         
                         <div className="mt-4 space-y-2">
                           {runResult.testCases.map((tc, i) => (
-                            <div key={i} className="bg-base-100 p-3 rounded text-xs">
+                            <div key={i} className=" p-3 rounded text-xs">
                               <div className="font-mono">
                                 <div><strong>Input:</strong> {tc.stdin}</div>
                                 <div><strong>Expected:</strong> {tc.expected_output}</div>
@@ -563,7 +563,7 @@ const ProblemPage = () => {
                         <h4 className="font-bold">❌ Error</h4>
                         <div className="mt-4 space-y-2">
                           {runResult.testCases.map((tc, i) => (
-                            <div key={i} className="bg-base-100 p-3 rounded text-xs">
+                            <div key={i} className="p-3 rounded text-xs">
                               <div className="font-mono">
                                 <div><strong>Input:</strong> {tc.stdin}</div>
                                 <div><strong>Expected:</strong> {tc.expected_output}</div>

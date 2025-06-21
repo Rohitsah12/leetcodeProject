@@ -11,6 +11,7 @@ import Admin from "./pages/Admin";
 import AdminVideo from "./components/AdminVideo";
 import AdminDelete from "./components/AdminDelete"
 import AdminUpload from "./components/AdminUpload";
+import LandingPage from "./pages/LandingPage";
 
 function App(){
   
@@ -31,6 +32,7 @@ function App(){
   return(
   <>
     <Routes>
+      <Route path="/landingpage" element={<LandingPage />}></Route>
       <Route path="/" element={isAuthenticated ?<Homepage></Homepage>:<Navigate to="/signup" />}></Route>
       <Route path="/login" element={isAuthenticated?<Navigate to="/" />:<Login></Login>}></Route>
       <Route path="/signup" element={isAuthenticated?<Navigate to="/" />:<Signup></Signup>}></Route>
@@ -40,6 +42,8 @@ function App(){
       <Route path="/admin/video" element={isAuthenticated && user?.role === 'admin' ? <AdminVideo /> : <Navigate to="/" />} />
       <Route path="/admin/upload/:problemId" element={isAuthenticated && user?.role === 'admin' ? <AdminUpload /> : <Navigate to="/" />} />
       <Route path="/problem/:problemId" element={<ProblemPage/>}></Route>
+
+      
       
     </Routes>
   </>
