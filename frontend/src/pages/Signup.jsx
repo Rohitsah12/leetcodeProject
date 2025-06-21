@@ -3,14 +3,14 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate, NavLink } from 'react-router'; // corrected react-router import
+import { useNavigate, NavLink } from 'react-router';
 import { registerUser } from '../authSlice';
-// import { toast } from 'react-hot-toast'; // Uncomment if using toast
+import { FaGoogle } from 'react-icons/fa'; // Added Google icon
 
 const signupSchema = z.object({
   firstName: z.string().min(3, "Minimum character should be 3"),
   emailId: z.string().email("Invalid Email"),
-  password: z.string().min(8, "Password is too weak")
+  password: z.string().min(8, "Password is too weak"),
 });
 
 function Signup() {
@@ -25,36 +25,69 @@ function Signup() {
     formState: { errors },
   } = useForm({ resolver: zodResolver(signupSchema) });
 
-  useEffect(() => {
-    if (isAuthenticated) {
-        navigate('/');
-        // toast.success("Signup successful!"); // Uncomment if using toast
-
-    }
-  }, [isAuthenticated, navigate]);
+  
 
   const onSubmit = (data) => {
     dispatch(registerUser(data));
   };
 
+  // Handle Google signup redirect
+  const handleGoogleSignup = () => {
+    window.location.href = 'http://localhost:3000/user/google';
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 ">
-      <div className="card w-96  shadow-xl">
-        <div className="card-body">
-          <h2 className="card-title justify-center text-3xl mb-6">Leetcode</h2>
+    <div
+      className="min-h-screen flex items-center justify-center p-4 bg-black text-white"
+      style={{
+        backgroundImage: `url('https://res.cloudinary.com/dltqzdtfh/image/upload/v1750446385/gridbg_uxjjws.png')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }}
+    >
+      <div className="w-full max-w-md bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl shadow-[0_0_30px_rgba(255,255,255,0.1)] p-8 relative overflow-hidden">
+        <div
+          className="absolute inset-0 rounded-2xl border border-white/10 pointer-events-none"
+          style={{
+            background:
+              'linear-gradient(135deg, rgba(0, 0, 0, 0.19), rgba(133, 133, 133, 0.19), rgba(222, 222, 222, 0.19))',
+          }}
+        ></div>
+
+        <div className="relative z-10">
+          <h2 className="text-4xl font-bold text-center text-white mb-6 tracking-wide">
+            DooCode
+          </h2>
+
+          {/* Google Signup Button */}
+          <button
+            onClick={handleGoogleSignup}
+            className="w-full flex items-center justify-center gap-3 py-3 px-4 bg-white text-black rounded-lg font-medium hover:bg-gray-100 transition-colors mb-6"
+          >
+            <FaGoogle className="text-xl" />
+            <span>Sign up with Google</span>
+          </button>
+          
+          <div className="relative flex items-center py-2">
+            <div className="flex-grow border-t border-white/20"></div>
+            <span className="flex-shrink mx-4 text-white/60 text-sm">OR</span>
+            <div className="flex-grow border-t border-white/20"></div>
+          </div>
 
           <form onSubmit={handleSubmit(onSubmit)}>
             {/* First Name */}
             <div className="form-control">
               <label htmlFor="firstName" className="label">
-                <span className="label-text">First Name</span>
+                <span className="label-text text-white">First Name</span>
               </label>
               <input
                 id="firstName"
                 type="text"
                 placeholder="John"
                 autoComplete="given-name"
-                className={`input input-bordered w-full ${errors.firstName ? 'input-error' : ''}`}
+                className={`input input-bordered w-full bg-transparent text-white placeholder-gray-400 focus:ring-2 focus:ring-primary transition-all duration-200 ${
+                  errors.firstName ? 'input-error' : '' 
+                }` }
                 {...register('firstName')}
               />
               {errors.firstName && (
@@ -65,14 +98,16 @@ function Signup() {
             {/* Email */}
             <div className="form-control mt-4">
               <label htmlFor="emailId" className="label">
-                <span className="label-text">Email</span>
+                <span className="label-text text-white">Email</span>
               </label>
               <input
                 id="emailId"
                 type="email"
                 placeholder="john@example.com"
                 autoComplete="email"
-                className={`input input-bordered w-full ${errors.emailId ? 'input-error' : ''}`}
+                className={`input input-bordered w-full bg-transparent text-white placeholder-gray-400 focus:ring-2 focus:ring-primary transition-all duration-200 ${
+                  errors.emailId ? 'input-error' : ''
+                }`}
                 {...register('emailId')}
               />
               {errors.emailId && (
@@ -83,22 +118,24 @@ function Signup() {
             {/* Password */}
             <div className="form-control mt-4">
               <label htmlFor="password" className="label">
-                <span className="label-text">Password</span>
+                <span className="label-text text-white">Password</span>
               </label>
               <div className="relative">
                 <input
                   id="password"
-                  type={showPassword ? "text" : "password"}
+                  type={showPassword ? 'text' : 'password'}
                   placeholder="••••••••"
                   autoComplete="new-password"
-                  className={`input input-bordered w-full pr-10 ${errors.password ? 'input-error' : ''}`}
+                  className={`input input-bordered w-full pr-10 bg-transparent text-white placeholder-gray-400 focus:ring-2 focus:ring-primary transition-all duration-200 ${
+                    errors.password ? 'input-error' : ''
+                  }`}
                   {...register('password')}
                 />
                 <button
                   type="button"
-                  className="absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  className="absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-400 hover:text-white transition"
                   onClick={() => setShowPassword(!showPassword)}
-                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
                   {showPassword ? (
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -117,18 +154,13 @@ function Signup() {
               )}
             </div>
 
-            {/* Error Feedback from Redux */}
-            {/* {error && (
-              <div className="text-error text-center mt-3 text-sm">
-                {typeof error === 'string' ? error : 'Signup failed. Please try again.'}
-              </div>
-            )} */}
-
-            {/* Submit */}
+            {/* Submit Button */}
             <div className="form-control mt-8 flex justify-center">
               <button
                 type="submit"
-                className={`btn btn-primary ${loading ? 'loading' : ''}`}
+                className={`btn text-black bg-white ${
+                  loading ? 'loading' : ''
+                }`}
                 disabled={loading}
               >
                 {loading ? 'Signing Up...' : 'Sign Up'}

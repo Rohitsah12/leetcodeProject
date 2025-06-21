@@ -33,7 +33,7 @@ export const checkAuth = createAsyncThunk(
       const { data } = await axiosClient.get('/user/check');
       return data.user;
     } catch (error) {
-      return rejectWithValue(error);
+      return null;
     }
   }
 );
@@ -46,6 +46,18 @@ export const logoutUser = createAsyncThunk(
       return null;
     } catch (error) {
       return rejectWithValue(error);
+    }
+  }
+);
+
+export const googleLogin = createAsyncThunk(
+  'auth/googleLogin',
+  async (_, { rejectWithValue }) => {
+    try {
+      // This is intentionally empty - the actual login happens via redirect
+      return null;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || 'Google login failed');
     }
   }
 );
@@ -99,16 +111,14 @@ const authSlice = createSlice({
       // Check Auth Cases
       .addCase(checkAuth.pending, (state) => {
         state.loading = true;
-        state.error = null;
       })
       .addCase(checkAuth.fulfilled, (state, action) => {
         state.loading = false;
-        state.isAuthenticated = !!action.payload;
         state.user = action.payload;
+        state.isAuthenticated = !!action.payload;
       })
-      .addCase(checkAuth.rejected, (state, action) => {
+      .addCase(checkAuth.rejected, (state) => {
         state.loading = false;
-        state.error = action.payload?.message || 'Something went wrong';
         state.isAuthenticated = false;
         state.user = null;
       })
@@ -129,7 +139,20 @@ const authSlice = createSlice({
         state.error = action.payload?.message || 'Something went wrong';
         state.isAuthenticated = false;
         state.user = null;
+      })
+      // Google Login Cases
+      .addCase(googleLogin.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(googleLogin.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(googleLogin.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       });
+
   }
 });
 
