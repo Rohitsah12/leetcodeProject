@@ -1,9 +1,12 @@
 import React from 'react';
-import Navbar from '../components/LandingComponents/Navbar';
+import Navbar from '../components/Landing/Navbar';
 import { ArrowRight } from 'lucide-react';
-
+import { NavLink } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 
 const LandingPage = () => {
+  const { isAuthenticated } = useSelector((state) => state.auth);
+  
   return (
     <div
       className="bg-black min-h-screen relative overflow-hidden"
@@ -15,7 +18,6 @@ const LandingPage = () => {
     >
       <Navbar />
 
-      {/* MAIN TEXT + BUTTON AREA */}
       <div className="flex justify-center items-start px-4 pt-20 relative z-10">
         <div className="flex flex-col items-center text-white space-y-6 relative">
           <div className="text-center text-4xl md:text-5xl font-bold leading-tight">
@@ -23,9 +25,13 @@ const LandingPage = () => {
             <h1 className="mt-2">Skills Faster</h1>
           </div>
 
-          <button className="flex items-center gap-2 bg-white text-black font-semibold px-6 py-3 rounded-full hover:scale-105 transition duration-300 shadow-md">
-            Get Started <ArrowRight size={20} />
-          </button>
+          {/* Updated navigation */}
+          <NavLink to={isAuthenticated ? "/problemset" : "/signup"}>
+            <button className="flex items-center gap-2 bg-white text-black font-semibold px-6 py-3 rounded-full hover:scale-105 transition duration-300 shadow-md">
+              {isAuthenticated ? "Go to Practice" : "Get Started"} 
+              <ArrowRight size={20} />
+            </button>
+          </NavLink>
         </div>
       </div>
 
@@ -49,8 +55,6 @@ const LandingPage = () => {
           markerEnd="url(#arrowhead)"
         />
       </svg>
-
-      
     </div>
   );
 };
