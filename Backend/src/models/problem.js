@@ -17,8 +17,12 @@ const problemSchema = new Schema({
     },
     tags: {
         type: [String], // changed from String to array of strings
-        enum: ['array', 'linkedlist', 'graph','binary search','dynamic programming', 'sliding window','two pointer'],
+        enum: ['array', 'linkedlist', 'graph','binary search','dynamic programming', 'sliding window','two pointer','stack'],
         required: true,
+    },
+    companies: { 
+        type: [String],
+        default: []
     },
     visibleTestCases: [
         {

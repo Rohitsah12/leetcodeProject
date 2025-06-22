@@ -8,6 +8,7 @@ import Login from './pages/Login';
 import PageNotFound from './pages/PageNotFound';
 import ProblemPage from './pages/ProblemPage'
 import Admin from './pages/Admin';
+import MyProfile from './pages/MyProfile';
 
 const App = () => {
   const dispatch = useDispatch();
@@ -38,6 +39,7 @@ const App = () => {
       <Route path='/signup' element={<Signup />} />
       <Route path='/login' element={<Login />} />
       <Route path='*' element={<PageNotFound />} />
+      <Route path='/myprofile' element={<MyProfile />} />
       
       {/* Protected routes */}
       <Route 

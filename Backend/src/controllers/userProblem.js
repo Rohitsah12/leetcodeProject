@@ -203,7 +203,7 @@ const getAllProblem = async(req,res)=>{
 
   try{
      
-    const getProblem = await Problem.find({}).select('_id title difficulty tags');
+    const getProblem = await Problem.find({}).select('_id title difficulty tags companies');
 
    if(getProblem.length==0)
     return res.status(404).send("Problem is Missing");
