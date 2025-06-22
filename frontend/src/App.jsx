@@ -7,6 +7,7 @@ import Signup from './pages/SignUp';
 import Login from './pages/Login';
 import PageNotFound from './pages/PageNotFound';
 import ProblemPage from './pages/ProblemPage'
+import ProblemSolvePage from './pages/ProblemSolvePage';
 import Admin from './pages/Admin';
 import MyProfile from './pages/MyProfile';
 
@@ -21,8 +22,8 @@ const App = () => {
   }, [dispatch]);
 
   // Show loading spinner only for protected routes
-  const protectedRoutes = ['/problemset', '/admin'];
-  const isProtectedRoute = protectedRoutes.includes(location.pathname);
+  const protectedRoutes = ['/problemset', '/admin', '/problem'];
+  const isProtectedRoute = protectedRoutes.some(route => location.pathname.startsWith(route));
   
   if (!initialCheckComplete && isProtectedRoute) {
     return (
@@ -47,6 +48,14 @@ const App = () => {
         element={
           initialCheckComplete && isAuthenticated ? 
             <ProblemPage /> : 
+            <Navigate to="/login" replace />
+        } 
+      />
+      <Route 
+        path='/problem/:id' 
+        element={
+          initialCheckComplete && isAuthenticated ? 
+            <ProblemSolvePage /> : 
             <Navigate to="/login" replace />
         } 
       />
