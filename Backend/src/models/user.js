@@ -50,7 +50,7 @@ const userSchema = new Schema({
     },
     password: {
         type: String,
-        required: function () { return !this.googleId; } // MODIFIED
+        required: function () { return !this.googleId; } 
     }
 }, {
     timestamps: true

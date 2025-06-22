@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, NavLink } from 'react-router';
 import { registerUser } from '../authSlice';
 import { FaGoogle } from 'react-icons/fa'; // Added Google icon
+import Navbar from '../components/Landing/Navbar';
 
 const signupSchema = z.object({
   firstName: z.string().min(3, "Minimum character should be 3"),
@@ -25,7 +26,11 @@ function Signup() {
     formState: { errors },
   } = useForm({ resolver: zodResolver(signupSchema) });
 
-  
+  useEffect(()=>{
+    if(isAuthenticated){
+      navigate('/');
+    }
+  },[isAuthenticated,navigate])
 
   const onSubmit = (data) => {
     dispatch(registerUser(data));
@@ -37,6 +42,7 @@ function Signup() {
   };
 
   return (
+   
     <div
       className="min-h-screen flex items-center justify-center p-4 bg-black text-white"
       style={{

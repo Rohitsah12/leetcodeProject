@@ -1,6 +1,6 @@
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { NavLink } from 'react-router-dom';
+import { Navigate, NavLink } from 'react-router-dom';
 import { logoutUser } from '../../authSlice';
 
 const Navbar = () => {
@@ -8,8 +8,18 @@ const Navbar = () => {
   const { isAuthenticated, user, loading } = useSelector((state) => state.auth);
 
   if (loading) {
-    return null; // Don't show navbar while loading
+    return null;
   }
+  const handleLogout = () => {
+    dispatch(logoutUser());
+    Navigate('/'); // Redirect to home page after logout
+  };
+
+  // Active link style handler
+  const getActiveStyle = ({ isActive }) => ({
+    color: isActive ? '#ffa500' : 'white',
+    fontWeight: isActive ? 600 : 'normal'
+  });
 
   return (
     <div
@@ -20,12 +30,25 @@ const Navbar = () => {
     >
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
         <div className="text-xl font-bold">
-          <NavLink to="/">DooCode</NavLink>
+          <NavLink 
+            to="/" 
+            className="hover:text-gray-300 transition"
+          >
+            DooCode
+          </NavLink>
         </div>
 
         <div className="flex space-x-6">
           <NavLink 
+            to='/' 
+            style={getActiveStyle}
+            className="hover:text-gray-300 transition"
+          >
+            Home
+          </NavLink>
+          <NavLink 
             to={isAuthenticated ? '/problemset' : '/signup'}
+            style={getActiveStyle}
             className="hover:text-gray-300 transition"
           >
             Problem
@@ -56,11 +79,18 @@ const Navbar = () => {
                 className="mt-3 z-[1] p-2 shadow menu dropdown-content bg-white/10 backdrop-blur border border-white/10 rounded-box w-52 text-white"
               >
                 <li>
-                  <button onClick={() => dispatch(logoutUser())}>Sign out</button>
+                  <button onClick={handleLogout}>Sign out</button>
                 </li>
                 {user?.role === 'admin' && (
                   <li>
-                    <NavLink to="/admin">Admin Panel</NavLink>
+                    <NavLink 
+                      to="/admin"
+                      className={({ isActive }) => 
+                        isActive ? 'text-[#ffa500] font-medium' : ''
+                      }
+                    >
+                      Admin Panel
+                    </NavLink>
                   </li>
                 )}
               </ul>
@@ -72,4 +102,4 @@ const Navbar = () => {
   );
 };
 
-export default Navbar;
+export default Navbar; 
