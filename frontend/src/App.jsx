@@ -9,6 +9,7 @@ import PageNotFound from './pages/PageNotFound';
 import ProblemPage from './pages/ProblemPage'
 import Admin from './pages/Admin';
 import MyProfile from './pages/MyProfile';
+import Problem from './pages/Problem';
 
 const App = () => {
   const dispatch = useDispatch();
@@ -40,6 +41,7 @@ const App = () => {
       <Route path='/login' element={<Login />} />
       <Route path='*' element={<PageNotFound />} />
       <Route path='/myprofile' element={<MyProfile />} />
+      <Route path="/problem/:problemId" element={<Problem/>}></Route>
       
       {/* Protected routes */}
       <Route 
