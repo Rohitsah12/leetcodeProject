@@ -4,7 +4,7 @@ const { Schema } = mongoose;
 const userSchema = new Schema({
     firstName: {
         type: String,
-        required: function () { return !this.googleId; }, // MODIFIED
+        required: function () { return !this.googleId; },
         minLength: 3,
         maxLength: 20
     },
@@ -24,7 +24,7 @@ const userSchema = new Schema({
     googleId: {
         type: String,
         unique: true,
-        sparse: true // ADDED
+        sparse: true
     },
     isVerified: {
         type: Boolean,
@@ -45,13 +45,12 @@ const userSchema = new Schema({
             type: Schema.Types.ObjectId,
             ref: 'problem',
             unique: true
-        }],
-
+        }]
     },
     password: {
         type: String,
         required: function () { return !this.googleId; } 
-    }
+    },
 }, {
     timestamps: true
 })

@@ -51,7 +51,6 @@ export const logoutUser = createAsyncThunk(
     }
   }
 );
-
 export const googleLogin = createAsyncThunk(
   'auth/googleLogin',
   async (_, { rejectWithValue }) => {
@@ -156,7 +155,7 @@ const authSlice = createSlice({
       .addCase(googleLogin.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
-      });
+      })
 
   }
 });

@@ -98,7 +98,7 @@ const submitCode = async (req,res)=>{
       req.result.problemSolved.push(problemId);
       await req.result.save();
     }
-    
+
     const accepted = (status == 'accepted')
     res.status(201).json({
       accepted,
@@ -196,23 +196,3 @@ const runCode = async(req,res)=>{
 module.exports = {submitCode,runCode};
 
 
-
-//     language_id: 54,
-//     stdin: '2 3',
-//     expected_output: '5',
-//     stdout: '5',
-//     status_id: 3,
-//     created_at: '2025-05-12T16:47:37.239Z',
-//     finished_at: '2025-05-12T16:47:37.695Z',
-//     time: '0.002',
-//     memory: 904,
-//     stderr: null,
-//     token: '611405fa-4f31-44a6-99c8-6f407bc14e73',
-
-
-// User.findByIdUpdate({
-// })
-
-//const user =  User.findById(id)
-// user.firstName = "Mohit";
-// await user.save();
