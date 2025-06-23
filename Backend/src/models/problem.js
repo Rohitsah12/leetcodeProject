@@ -16,11 +16,18 @@ const problemSchema = new Schema({
         required: true,
     },
     tags: {
-        type: [String], // changed from String to array of strings
-        enum: ['array', 'linkedlist', 'graph','binary search','dynamic programming', 'sliding window','two pointer','stack'],
+        type: [String],
         required: true,
     },
     companies: { 
+        type: [String],
+        default: []
+    },
+    hints: {
+        type: [String],
+        default: []
+    },
+    constraints: {
         type: [String],
         default: []
     },

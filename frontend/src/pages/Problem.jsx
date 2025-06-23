@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect, useMemo } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate, useParams } from 'react-router-dom';
 import {
   ChevronLeft,
   ChevronRight,
@@ -11,10 +11,20 @@ import {
   Check,
   X,
   Search,
+  Code,
+  Edit,
+  Clock,
+  SparkleIcon,
 } from 'lucide-react';
 import axiosClient from '../utils/axiosClient';
+import Editorial from '../components/Problem/Editorial';
+import SubmissionHistory from '../components/Problem/SubmissionHistory';
+import ChatAI from '../components/Problem/ChatAI';
+// import CodeEditor from '../components/Problem/';
+// import TestCases from '../components/Problem/TestCases';
 
 const ProblemPage = () => {
+  const { problemId } = useParams();
   const navigate = useNavigate();
   const fullscreenRef = useRef(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -25,10 +35,11 @@ const ProblemPage = () => {
   const [currentProblem, setCurrentProblem] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [activeLeftTab, setActiveLeftTab] = useState('description');
   
   // Resizable panels state
-  const [leftWidth, setLeftWidth] = useState(50); // Default width percentage
-  const [editorHeight, setEditorHeight] = useState(70); // Default height percentage for editor
+  const [leftWidth, setLeftWidth] = useState(60);
+  const [editorHeight, setEditorHeight] = useState(70);
   const [isResizing, setIsResizing] = useState(false);
   const [isVerticalResizing, setIsVerticalResizing] = useState(false);
   const containerRef = useRef(null);
@@ -41,9 +52,12 @@ const ProblemPage = () => {
         const response = await axiosClient.get('/problem/getAllProblem');
         setProblems(response.data);
         
-        // Set the first problem as current if none is selected
-        if (response.data.length > 0 && !currentProblem) {
-          setCurrentProblem(response.data[0]);
+        // Set current problem based on URL param
+        if (response.data.length > 0) {
+          const problem = problemId 
+            ? response.data.find(p => p._id === problemId) 
+            : response.data[0];
+          setCurrentProblem(problem || response.data[0]);
         }
         
         setError(null);
@@ -56,7 +70,38 @@ const ProblemPage = () => {
     };
 
     fetchProblems();
-  }, []);
+  }, [problemId]);
+
+  // Fetch single problem when ID changes
+  useEffect(() => {
+  const fetchProblem = async () => {
+    try {
+      setLoading(true);
+      console.log('Fetching with id:', problemId);
+
+      const response = await axiosClient.get(`/problem/ProblemById/${problemId}`);
+      
+      console.log('API response:', response);
+
+      if (response?.data) {
+        setCurrentProblem(response.data);
+        console.log('Problem set:', response.data);
+      } else {
+        console.warn('Empty response data:', response);
+      }
+
+      setError(null);
+    } catch (err) {
+      setError('Failed to load problem. Please try again later.');
+      console.error('Error fetching problem:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (problemId) fetchProblem(); // simple and correct
+}, [problemId]);
+
 
   // Filter problems based on search term
   const filteredProblems = useMemo(() => {
@@ -70,26 +115,22 @@ const ProblemPage = () => {
   useEffect(() => {
     const handleMouseMove = (e) => {
       if (isResizing) {
-        // Horizontal resizing (left/right panels)
         const containerRect = containerRef.current.getBoundingClientRect();
         const containerWidth = containerRect.width;
         const mouseX = e.clientX - containerRect.left;
         const newLeftWidth = (mouseX / containerWidth) * 100;
         
-        // Set boundaries (min 20%, max 80%)
-        if (newLeftWidth >= 20 && newLeftWidth <= 80) {
+        if (newLeftWidth >= 30 && newLeftWidth <= 80) {
           setLeftWidth(newLeftWidth);
         }
       }
       
       if (isVerticalResizing) {
-        // Vertical resizing (editor/test cases)
         const containerRect = containerRef.current.getBoundingClientRect();
         const containerHeight = containerRect.height;
         const mouseY = e.clientY - containerRect.top;
         const newEditorHeight = (mouseY / containerHeight) * 100;
         
-        // Set boundaries (min 30%, max 90%)
         if (newEditorHeight >= 30 && newEditorHeight <= 90) {
           setEditorHeight(newEditorHeight);
         }
@@ -164,7 +205,6 @@ const ProblemPage = () => {
       const currentIndex = problems.findIndex(p => p._id === currentProblem._id);
       if (currentIndex > 0) {
         const prevProblem = problems[currentIndex - 1];
-        setCurrentProblem(prevProblem);
         navigate(`/problem/${prevProblem._id}`);
       }
     }
@@ -175,7 +215,6 @@ const ProblemPage = () => {
       const currentIndex = problems.findIndex(p => p._id === currentProblem._id);
       if (currentIndex < problems.length - 1) {
         const nextProblem = problems[currentIndex + 1];
-        setCurrentProblem(nextProblem);
         navigate(`/problem/${nextProblem._id}`);
       }
     }
@@ -183,7 +222,6 @@ const ProblemPage = () => {
 
   // Handle problem selection from list
   const handleProblemSelect = (problem) => {
-    setCurrentProblem(problem);
     setShowProblemList(false);
     navigate(`/problem/${problem._id}`);
   };
@@ -194,7 +232,32 @@ const ProblemPage = () => {
     return problems.findIndex(p => p._id === currentProblem._id);
   };
 
+  // Get difficulty color class
+  const getDifficultyColor = (difficulty) => {
+    
+    switch (difficulty.toLowerCase()) {
+      case 'easy': return 'text-green-400';
+      case 'medium': return 'text-yellow-400';
+      case 'hard': return 'text-red-400';
+      default: return 'text-gray-400';
+    }
+  };
+
   const currentIndex = getCurrentProblemIndex();
+  if (loading && !currentProblem) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <span className="loading loading-spinner loading-lg"></span>
+      </div>
+    );
+  }
+
+  const leftTabs = [
+    { id: 'description', label: 'Description', icon: <Code className="w-4 h-4" /> },
+    { id: 'editorial', label: 'Editorial', icon: <Edit className="w-4 h-4" /> },
+    { id: 'submissions', label: 'Submissions', icon: <Clock className="w-4 h-4" /> },
+    { id: 'chatAI', label: 'AI Companion', icon: <SparkleIcon className="w-4 h-4" /> },
+  ];
 
   return (
     <div ref={fullscreenRef} className="min-h-screen bg-black text-white"
@@ -354,45 +417,114 @@ const ProblemPage = () => {
       >
         {/* Left Tab - Problem Description */}
         <div 
-          className="h-full overflow-auto bg-[#0e0e10]/80 backdrop-blur-md p-6"
+          className="h-full overflow-auto bg-[#0e0e10]/80 backdrop-blur-md p-2"
           style={{ width: `${leftWidth}%` }}
         >
           {currentProblem ? (
             <>
-              <h1 className="text-3xl font-bold mb-2">
-                {currentProblem.title}
-              </h1>
-              <div className="mb-4 flex items-center gap-4">
-                <span 
-                  className={`text-xs px-2 py-1 rounded-full ${
-                    currentProblem.difficulty === 'easy' 
-                      ? 'bg-green-900 text-green-300' 
-                      : currentProblem.difficulty === 'medium' 
-                        ? 'bg-yellow-900 text-yellow-300' 
-                        : 'bg-red-900 text-red-300'
-                  }`}
-                >
-                  {currentProblem.difficulty}
-                </span>
-                <span className="text-sm text-gray-400">
-                  Problem {currentIndex + 1} of {problems.length}
-                </span>
-              </div>
-              
-              <div className="prose prose-invert max-w-none">
-                <div 
-                  dangerouslySetInnerHTML={{ 
-                    __html: currentProblem.description 
-                  }} 
-                  className="text-gray-300 mb-6"
-                />
-                
-                {currentProblem.example && (
-                  <div className="bg-gray-800 p-4 rounded-lg">
-                    <h3 className="text-lg font-semibold mb-2">Example:</h3>
-                    <pre className="bg-gray-900 p-4 rounded overflow-x-auto">
-                      {currentProblem.example}
-                    </pre>
+              <nav className="border-b h-10 flex items-center px-4 space-x-4 gap-[20px]">
+                {leftTabs.map((tab) => (
+                  <button
+                    key={tab.id}
+                    className={`flex items-center gap-1 text-sm cursor-pointer ${
+                      activeLeftTab === tab.id 
+                        ? 'text-orange-500 border-b-2 border-orange-500' 
+                        : 'text-gray-400 hover:text-white'
+                    }`}
+                    onClick={() => setActiveLeftTab(tab.id)}
+                  >
+                    {tab.icon}
+                    {tab.label}
+                  </button>
+                ))}
+              </nav>
+
+              {/* Left Content */}
+              <div className="flex-1 overflow-y-auto p-6">
+                {activeLeftTab === 'description' && (
+                    
+                  <div>
+                    <div className="flex items-center gap-4 mb-6">
+                      <h1 className="text-2xl font-bold">{currentProblem.title}</h1>
+                      <span className={`badge badge-outline ${getDifficultyColor(currentProblem.difficulty)}`}>
+                        {currentProblem.difficulty.charAt(0).toUpperCase() + currentProblem.difficulty.slice(1)}
+                      </span>
+                      {/* <div className="badge badge-primary">{currentProblem.tags?.join(', ') || 'No tags'}</div> */}
+                    </div>
+
+                    <div className="prose max-w-none">
+                      <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                        {currentProblem.description}
+                      </div>
+                    </div>
+
+                    <div className="mt-8">
+                      <h3 className="text-lg font-semibold mb-4">Examples:</h3>
+                      <div className="space-y-4">
+                        {currentProblem.visibleTestCases?.map((example, index) => (
+                          <div key={index} className="border-l p-4 rounded-lg">
+                            <h4 className="font-semibold mb-2">Example {index + 1}:</h4>
+                            <div className="space-y-2 text-sm font-mono">
+                              <div><strong>Input:</strong> {example.input}</div>
+                              <div><strong>Output:</strong> {example.output}</div>
+                              {example.explaination && (
+                                <div><strong>Explanation:</strong> {example.explaination}</div>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="mt-8">
+                        <h3 className="text-lg font-semibold mb-4">Constraints:</h3>
+                        <ul className="list-disc pl-5 space-y-2">
+                            {currentProblem.constraints?.map((constraint, index) => {
+                            // Split constraint into condition and description
+                            const [condition, ...descriptionParts] = constraint.split(':');
+                            const description = descriptionParts.join(':').trim();
+                            
+                            
+                                <li key={index} className="text-sm">
+                                {description ? (
+                                    <>
+                                    <span className="font-mono bg-gray-800 px-2 py-0.5 rounded mr-2">
+                                        {condition.trim()}
+                                    </span>
+                                    {description}
+                                    </>
+                                ) : (
+                                    <span className="font-mono bg-gray-800 px-2 py-0.5 rounded">
+                                    {condition.trim()}
+                                    </span>
+                                )}
+                                </li>
+                            
+                            })}
+                        </ul>
+                        </div>
+                  </div>
+                )}
+
+                {activeLeftTab === 'editorial' && (
+                  <div className="prose max-w-none">
+                    <Editorial 
+                      secureUrl={currentProblem.editorial?.secureUrl} 
+                      thumbnailUrl={currentProblem.editorial?.thumbnailUrl} 
+                      duration={currentProblem.editorial?.duration} 
+                    />
+                  </div>
+                )}
+
+                {activeLeftTab === 'submissions' && (
+                  <div>
+                    <SubmissionHistory problemId={currentProblem._id} />
+                  </div>
+                )}
+
+                {activeLeftTab === 'chatAI' && (
+                  <div className="prose max-w-none">
+                    <ChatAI problem={currentProblem} />
                   </div>
                 )}
               </div>
@@ -429,7 +561,8 @@ const ProblemPage = () => {
             className="overflow-auto"
             style={{ height: `${editorHeight}%` }}
           >
-            
+            {/* <CodeEditor problemId={currentProblem?._id} /> */}
+            CodeEditor WIll be available Soon
           </div>
           
           {/* Horizontal Resizer (Editor/Test Cases) */}
@@ -443,7 +576,8 @@ const ProblemPage = () => {
             className="overflow-auto"
             style={{ height: `${100 - editorHeight}%` }}
           >
-            
+            {/* <TestCases problemId={currentProblem?._id} /> */}
+            TestCases will be available Soon
           </div>
         </div>
       </div>
