@@ -169,7 +169,7 @@ const getProblemById = async(req,res)=>{
     if(!id)
       return res.status(400).send("ID is Missing");
 
-    const getProblem = await Problem.findById(id).select('_id title description difficulty tags visibleTestCases startCode referenceSolution hints ');
+    const getProblem = await Problem.findById(id).select('_id title description difficulty tags visibleTestCases startCode referenceSolution hints constraints companies ');
    
     // video ka jo bhi url wagera le aao
     
