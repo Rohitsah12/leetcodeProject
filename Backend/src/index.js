@@ -13,6 +13,7 @@ const videoRouter = require('./routes/videoCreator');
 const session = require('express-session'); 
 const MongoStore = require('connect-mongo');
 const passport = require('passport'); 
+const userRouter = require('./routes/userRouter');
 
 app.use(cors({
     origin: process.env.FRONTEND_URL,
@@ -47,6 +48,7 @@ app.use('/problem', problemRouter)
 app.use('/submission', submitRouter)
 app.use('/ai', aiRouter);
 app.use('/video', videoRouter)
+app.use('/userProfile',userRouter)
 
 
 const InitializeConnection = async () => {

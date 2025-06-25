@@ -1,6 +1,6 @@
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
 
+const mongoose = require('mongoose');
+const { Schema } = mongoose;
 const submissionSchema = new Schema({
   userId: {
     type: Schema.Types.ObjectId,
@@ -27,11 +27,11 @@ const submissionSchema = new Schema({
     default: 'pending'
   },
   runtime: {
-    type: Number,  // milliseconds
+    type: Number,
     default: 0
   },
   memory: {
-    type: Number,  // kB
+    type: Number,
     default: 0
   },
   errorMessage: {
@@ -42,14 +42,22 @@ const submissionSchema = new Schema({
     type: Number,
     default: 0
   },
-  testCasesTotal: {  // Recommended addition
+  testCasesTotal: {
     type: Number,
     default: 0
+  },
+
+  // ✅ Explicit timestamp for easy sorting
+  submittedAt: {
+    type: Date,
+    default: Date.now
   }
+
 }, { 
   timestamps: true
-}); 
-submissionSchema.index({userId:1,problemId:1});
+});
+submissionSchema.index({ userId: 1, createdAt: -1 });
+submissionSchema.index({ problemId: 1, status: 1 });
 
-const Submission=mongoose.model('submission',submissionSchema);
-module.exports=Submission;
+const Submission = mongoose.model('submission', submissionSchema);
+module.exports = Submission;

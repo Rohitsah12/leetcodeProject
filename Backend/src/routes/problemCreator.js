@@ -55,6 +55,26 @@ problemRouter.get('/getTopics', async (req, res) => {
     res.status(500).json({ message: 'Error fetching topics' });
   }
 });
+
+// In your problem routes
+problemRouter.post('/by-ids', async (req, res) => {
+  try {
+    const { problemIds } = req.body;
+    
+    if (!problemIds || !Array.isArray(problemIds)) {
+      return res.status(400).json({ message: 'Invalid problem IDs' });
+    }
+    
+    const problems = await Problem.find({
+      _id: { $in: problemIds }
+    }).select('difficulty');
+    
+    res.json(problems);
+  } catch (err) {
+    console.error('Error fetching problems:', err);
+    res.status(500).json({ message: 'Error fetching problems' });
+  }
+});
 //fetch
 //update
 //delete

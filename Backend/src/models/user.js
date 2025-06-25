@@ -1,4 +1,4 @@
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 const userSchema = new Schema({
@@ -26,6 +26,10 @@ const userSchema = new Schema({
         unique: true,
         sparse: true
     },
+    password: {
+        type: String,
+        required: function () { return !this.googleId; } 
+    },
     isVerified: {
         type: Boolean,
         default: false
@@ -40,20 +44,34 @@ const userSchema = new Schema({
         enum: ['user', 'admin'],
         default: 'user'
     },
-    problemSolved: {
-        type: [{
-            type: Schema.Types.ObjectId,
-            ref: 'problem',
-            unique: true
-        }]
+    problemSolved: [{
+    type: Schema.Types.ObjectId,
+    ref: 'problem'
+}],
+    
+    // ✅ New fields for profile support
+    profileImage: {
+        type: String, // Cloudinary image URL
+        default: ''   // Optional default avatar
     },
-    password: {
-        type: String,
-        required: function () { return !this.googleId; } 
+    streak: {
+    count: { type: Number, default: 0 },
+    lastStreakDate: { type: String } // Store as 'YYYY-MM-DD' in user's timezone
+},
+    // In userSchema
+    heatmapData: {
+    type: Map,
+    of: Number,
+    default: {}
     },
+    timezone: {
+    type: String,
+    default: Intl.DateTimeFormat().resolvedOptions().timeZone
+    }
+
 }, {
     timestamps: true
-})
+});
 
 const User = mongoose.model("user", userSchema);
 module.exports = User;
