@@ -11,6 +11,12 @@ import ProblemSolvePage from './pages/ProblemSolvePage';
 import Admin from './pages/Admin';
 import MyProfile from './pages/MyProfile';
 import Problem from './pages/Problem';
+import CreateProblem from './components/AdminPanel/CreateProblem';
+import { Delete } from 'lucide-react';
+import DeleteProblem from './components/AdminPanel/DeleteProblem';
+import AdminUpload from './components/AdminPanel/UploadVideo';
+import UploadVideo from './components/AdminPanel/UploadVideo';
+import AdminVideo from './components/AdminPanel/AdminVideo';
 
 const App = () => {
   const dispatch = useDispatch();
@@ -43,6 +49,10 @@ const App = () => {
       <Route path='*' element={<PageNotFound />} />
       <Route path='/myprofile' element={<MyProfile />} />
       <Route path="/problem/:problemId" element={<Problem/>}></Route>
+      <Route path="/admin/create" element={isAuthenticated && user?.role  === 'admin' ? <CreateProblem /> : <Navigate to="/" />} />
+      <Route path="/admin/delete" element={isAuthenticated && user?.role === 'admin' ? <DeleteProblem /> : <Navigate to="/" />} />
+      <Route path="/admin/video" element={isAuthenticated && user?.role === 'admin' ? <AdminVideo /> : <Navigate to="/" />} />
+      <Route path="/admin/upload/:problemId" element={isAuthenticated && user?.role === 'admin' ? <UploadVideo /> : <Navigate to="/" />} />
       
       {/* Protected routes */}
       <Route 

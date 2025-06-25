@@ -6,7 +6,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, NavLink } from 'react-router';
 import { loginUser } from '../authSlice';
 import { FaGoogle } from 'react-icons/fa'; // Added Google icon
-import Navbar from '../components/Landing/Navbar';
 
 const loginSchema = z.object({
   emailId: z.string().email("Invalid Email"),

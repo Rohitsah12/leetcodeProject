@@ -4,70 +4,93 @@ const User = require("../models/user");
 const Submission = require("../models/submission");
 const SolutionVideo = require("../models/solutionVideo")
 
-const createProblem = async (req,res)=>{
-   
-  // API request to authenticate user:
-    const {title,description,difficulty,tags,
-        visibleTestCases,hiddenTestCases,startCode,
-        referenceSolution, problemCreator
-    } = req.body;
+const createProblem = async (req, res) => {
+  const {
+    title,
+    description,
+    difficulty,
+    tags,
+    visibleTestCases,
+    hiddenTestCases,
+    startCode,
+    referenceSolution
+  } = req.body;
 
+  try {
+    // Validate reference solutions against visible test cases
+    for (const solution of referenceSolution) {
+      const languageId = getLanguageById(solution.language);
+      const submissions = visibleTestCases.map(testcase => ({
+        source_code: solution.completeCode,
+        language_id: languageId,
+        stdin: testcase.input,
+        expected_output: testcase.output
+      }));
 
-    try{
-       
-      for(const {language,completeCode} of referenceSolution){
-         
-
-        // source_code:
-        // language_id:
-        // stdin: 
-        // expectedOutput:
-
-        const languageId = getLanguageById(language);
-          
-        // I am creating Batch submission
-        const submissions = visibleTestCases.map((testcase)=>({
-            source_code:completeCode,
-            language_id: languageId,
-            stdin: testcase.input,
-            expected_output: testcase.output
-        }));
-
-
-        const submitResult = await submitBatch(submissions);
-        // console.log(submitResult);
-
-        const resultToken = submitResult.map((value)=> value.token);
-
-        // ["db54881d-bcf5-4c7b-a2e3-d33fe7e25de7","ecc52a9b-ea80-4a00-ad50-4ab6cc3bb2a1","1b35ec3b-5776-48ef-b646-d5522bdeb2cc"]
-        
-       const testResult = await submitToken(resultToken);
-
-
-       console.log(testResult);
-
-       for(const test of testResult){
-        if(test.status_id!=3){
-         return res.status(400).send("Error Occured");
+      const submitResult = await submitBatch(submissions);
+      const tokens = submitResult.map(item => item.token);
+      
+      // Check results after a short delay
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      const testResults = await submitToken(tokens);
+      
+      for (const result of testResults) {
+        if (result.status.id !== 3) { // 3 = Accepted
+          return res.status(400).json({
+            message: "Reference solution failed validation",
+            details: {
+              language: solution.language,
+              testCase: result.stdin,
+              expected: result.expected_output,
+              actual: result.stdout,
+              error: result.stderr
+            }
+          });
         }
-       }
-
       }
+    }
+    
+    
+    // Create problem in database
+    const problem = await Problem.create({
+      title,
+      description,
+      difficulty,
+      tags,
+      companies: [],
+      hints: [],
+      constraints: [],
+      visibleTestCases,
+      hiddenTestCases,
+      startCode,
+      referenceSolution,
+      problemCreator: req.result._id
+    });
 
-
-      // We can store it in our DB
-
-    const userProblem =  await Problem.create({
-        ...req.body,
-        problemCreator: req.result._id
+    res.status(201).json({
+      message: "Problem created successfully",
+      problemId: problem._id
+    });
+  } catch (error) {
+    console.error("Error creating problem:", error);
+    
+    // Handle axios errors specifically
+    if (error.response) {
+      console.error("Judge0 API error:", error.response.data);
+      return res.status(502).json({
+        message: "Online judge service unavailable",
+        details: error.response.data
       });
+    }
+    
+    res.status(400).json({
+      message: "Problem creation failed",
+      error: error.message
+    });
+  }
+};
 
-      res.status(201).send("Problem Saved Successfully");
-    }
-    catch(err){
-        res.status(400).send("Error: "+err);
-    }
-}
 
 const updateProblem = async (req,res)=>{
     
