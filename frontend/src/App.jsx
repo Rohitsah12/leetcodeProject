@@ -17,6 +17,8 @@ import DeleteProblem from './components/AdminPanel/DeleteProblem';
 import AdminUpload from './components/AdminPanel/UploadVideo';
 import UploadVideo from './components/AdminPanel/UploadVideo';
 import AdminVideo from './components/AdminPanel/AdminVideo';
+import UpdateProblemList from './components/AdminPanel/UpdateProblemList';
+import UpdateProblem from './components/AdminPanel/UpdateProblem';
 
 const App = () => {
   const dispatch = useDispatch();
@@ -53,6 +55,8 @@ const App = () => {
       <Route path="/admin/delete" element={isAuthenticated && user?.role === 'admin' ? <DeleteProblem /> : <Navigate to="/" />} />
       <Route path="/admin/video" element={isAuthenticated && user?.role === 'admin' ? <AdminVideo /> : <Navigate to="/" />} />
       <Route path="/admin/upload/:problemId" element={isAuthenticated && user?.role === 'admin' ? <UploadVideo /> : <Navigate to="/" />} />
+      <Route path="/admin/update" element={isAuthenticated && user?.role === 'admin' ? <UpdateProblemList /> : <Navigate to="/" />} />
+      <Route path="/admin/update/:problemId" element={isAuthenticated && user?.role === 'admin' ? <UpdateProblem /> : <Navigate to="/" />} />
       
       {/* Protected routes */}
       <Route 

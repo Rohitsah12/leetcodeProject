@@ -92,73 +92,58 @@ const createProblem = async (req, res) => {
 };
 
 
-const updateProblem = async (req,res)=>{
-    
-  const {id} = req.params;
-  const {title,description,difficulty,tags,
-    visibleTestCases,hiddenTestCases,startCode,
-    referenceSolution, problemCreator
-   } = req.body;
+const updateProblem = async (req, res) => {
+ 
+  
+  const { id } = req.params;
+  const { 
+    title, 
+    description, 
+    difficulty, 
+    tags,
+    companies, // Added companies
+    hints,    // Added hints
+    constraints, // Added constraints
+    visibleTestCases, 
+    hiddenTestCases, 
+    startCode,
+    referenceSolution 
+  } = req.body;
 
-  try{
-
-     if(!id){
+  try {
+    if (!id) {
       return res.status(400).send("Missing ID Field");
-     }
-
-    const DsaProblem =  await Problem.findById(id);
-    if(!DsaProblem)
-    {
-      return res.status(404).send("ID is not persent in server");
-    }
-      
-    for(const {language,completeCode} of referenceSolution){
-         
-
-      // source_code:
-      // language_id:
-      // stdin: 
-      // expectedOutput:
-
-      const languageId = getLanguageById(language);
-        
-      // I am creating Batch submission
-      const submissions = visibleTestCases.map((testcase)=>({
-          source_code:completeCode,
-          language_id: languageId,
-          stdin: testcase.input,
-          expected_output: testcase.output
-      }));
-
-
-      const submitResult = await submitBatch(submissions);
-      // console.log(submitResult);
-
-      const resultToken = submitResult.map((value)=> value.token);
-
-      // ["db54881d-bcf5-4c7b-a2e3-d33fe7e25de7","ecc52a9b-ea80-4a00-ad50-4ab6cc3bb2a1","1b35ec3b-5776-48ef-b646-d5522bdeb2cc"]
-      
-     const testResult = await submitToken(resultToken);
-
-    //  console.log(testResult);
-
-     for(const test of testResult){
-      if(test.status_id!=3){
-       return res.status(400).send("Error Occured");
-      }
-     }
-
     }
 
+    const DsaProblem = await Problem.findById(id);
+    if (!DsaProblem) {
+      return res.status(404).send("ID is not present in server");
+    }
 
-  const newProblem = await Problem.findByIdAndUpdate(id , {...req.body}, {runValidators:true, new:true});
-   
-  res.status(200).send(newProblem);
+    // Update all fields including companies, hints, constraints
+    const updatedProblem = await Problem.findByIdAndUpdate(
+      id,
+      {
+        title,
+        description,
+        difficulty,
+        tags,
+        companies, 
+        hints,
+        constraints,
+        visibleTestCases,
+        hiddenTestCases,
+        startCode,
+        referenceSolution
+      },
+      { runValidators: true, new: true }
+    );
+
+    res.status(200).json(updatedProblem);
+  } catch (err) {
+    res.status(500).send("Error: " + err);
   }
-  catch(err){
-      res.status(500).send("Error: "+err);
-  }
-}
+};
 
 const deleteProblem = async(req,res)=>{
 
@@ -183,48 +168,54 @@ const deleteProblem = async(req,res)=>{
 }
 
 
-const getProblemById = async(req,res)=>{
+const getProblemById = async (req, res) => {
+  const { id } = req.params;
+  const userId = req.result?._id; // Use optional chaining to avoid errors
 
-  const {id} = req.params;
-  try{
-        
-     
-    if(!id)
-      return res.status(400).send("ID is Missing");
+  
 
-    const getProblem = await Problem.findById(id).select('_id title description difficulty tags visibleTestCases startCode referenceSolution hints constraints companies ');
-   
-    // video ka jo bhi url wagera le aao
-    
+  try {
+    if (!id) return res.status(400).send("ID is Missing");
 
-   if(!getProblem)
-    return res.status(404).send("Problem is Missing");
-
-   const videos = await SolutionVideo.findOne({problemId:id});
-
-   if(videos){   
-    
-    const responseData={
-      ...getProblem.toObject(),
-      secureUrl : videos.secureUrl,
-      thumbnailUrl : videos.thumbnailUrl,
-      duration :videos.duration,
-
+    // Fetch user role if user is authenticated
+    let isAdmin = false;
+    if (userId) {
+      const user = await User.findById(userId).select('role');
+      isAdmin = user?.role === 'admin';
     }
-      
-    
-      return res.status(200).send(responseData);
-   }
-    console.log(getProblem);
-    
-   res.status(200).send(getProblem);
 
-  }
-  catch(err){
-    res.status(500).send("Error: "+err);
-  }
-}
+    console.log(isAdmin);
+    
+    // Select fields conditionally based on user role
+    let problemQuery = Problem.findById(id).select(
+      '_id title description difficulty tags visibleTestCases startCode referenceSolution hints constraints companies'
+    );
 
+    // Add hiddenTestCases only for admin users
+    if (isAdmin) {
+      problemQuery = problemQuery.select('+hiddenTestCases');
+    }
+
+    const getProblem = await problemQuery;
+
+    if (!getProblem) return res.status(404).send("Problem is Missing");
+
+    // Get video solution
+    const videos = await SolutionVideo.findOne({ problemId: id });
+
+    // Prepare response data
+    const responseData = {
+      ...getProblem.toObject(),
+      secureUrl: videos?.secureUrl || null,
+      thumbnailUrl: videos?.thumbnailUrl || null,
+      duration: videos?.duration || null,
+    };
+
+    res.status(200).send(responseData);
+  } catch (err) {
+    res.status(500).send("Error: " + err);
+  }
+};
 const getAllProblem = async(req,res)=>{
 
   try{
