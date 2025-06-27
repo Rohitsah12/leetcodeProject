@@ -1,9 +1,11 @@
 const redisClient = require('../config/redis');
+const College = require('../models/college');
 const Submission = require('../models/submission');
 const User=require('../models/user');
 const validate=require('../utils/validator')
 const bcrypt=require('bcrypt');
-const jwt=require('jsonwebtoken')
+const jwt=require('jsonwebtoken');
+const collegeValidate = require('../utils/collegeValidator');
 
 
 const register=async (req,res)=>{
@@ -160,4 +162,97 @@ exports.googleAuthCallback = (req, res) => {
 
   res.redirect(`${process.env.FRONTEND_URL}`);
 };
-module.exports={register,login,logout,adminRegister,deleteProfile}
+
+
+const collegeRegister=async (req,res)=>{
+    try {
+        //validate the data;
+        collegeValidate(req.body);
+        const {collegeName,emailId,password}=req.body;
+        req.body.password=await bcrypt.hash(password,10);
+
+        //If this emailId already or not
+        const college = await College.create(req.body);
+        //jwt token
+
+        const token=jwt.sign({_id:college._id,emailId:emailId},process.env.JWT_KEY,{expiresIn:3600});
+
+        const reply={
+            collegeName:college.collegeName,
+            emailId:college.emailId,
+            _id:college._id,
+        }
+        res.cookie('token',token,{maxAge:60*60*1000})
+        res.status(201).json({
+            college:reply,
+            message:"loggin Successfully"
+        })  
+    } catch (error) {
+        res.status(400).send("Error:"+error);
+    }
+
+}
+const collegeLogin=async (req,res)=>{
+    try {
+        const {emailId,password}=req.body;
+        console.log(emailId);
+        console.log(password);
+        
+
+        if(!emailId)
+            throw new Error("Invalid Credentials");
+
+        if(!password)
+            throw new Error("Invalid Credentials");
+
+        const college=await College.findOne({emailId});
+
+        const match=await bcrypt.compare(password,college.password);
+
+        if(!match)
+            throw new Error("Ivalid Credentials");
+
+
+        const reply={
+            collegeName:college.collegeName,
+            emailId:college.emailId,
+            _id:college._id,
+        }
+        const token=jwt.sign({_id:college._id,emailId:emailId},process.env.JWT_KEY,{expiresIn:'7d'});
+
+        res.cookie('token',token,{maxAge:60*60*1000})
+        res.status(201).json({
+            college:reply,
+            message:"loggin Successfully"
+        })   
+    } catch (error) {
+        res.status(401).send("Error: ",error)
+    }
+
+
+}
+
+const collegeLogout=async (req,res)=>{
+    try {
+        
+        //valdidate the token
+        //Token ko add krr dunga Redis k blockList
+        // Cookies ko clear krr dena......
+
+        const {token}=req.cookies;
+
+        const payload=jwt.decode(token);
+
+        await redisClient.set(`token:${token}`,'Blocked');
+        await redisClient.expireAt(`token:${token}`, payload.exp);
+
+
+        res.cookie("token",null,{expires:new Date(Date.now())});
+        res.send(":Logged out Successfully");
+
+    } catch (error) {
+        res.status(503).send("Error"+error);
+    }
+
+}
+module.exports={register,login,logout,adminRegister,deleteProfile,collegeRegister,collegeLogin,collegeLogout}

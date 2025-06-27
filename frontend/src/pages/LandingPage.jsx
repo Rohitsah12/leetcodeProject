@@ -5,7 +5,7 @@ import { NavLink } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 
 const LandingPage = () => {
-  const { isAuthenticated } = useSelector((state) => state.auth);
+  const { isUserAuthenticated } = useSelector((state) => state.auth);
   
   return (
     <div
@@ -26,9 +26,9 @@ const LandingPage = () => {
           </div>
 
           {/* Updated navigation */}
-          <NavLink to={isAuthenticated ? "/problemset" : "/signup"}>
+          <NavLink to={isUserAuthenticated ? "/problemset" : "/signup"}>
             <button className="flex items-center gap-2 bg-white text-black font-semibold px-6 py-3 rounded-full hover:scale-105 transition duration-300 shadow-md">
-              {isAuthenticated ? "Go to Practice" : "Get Started"} 
+              {isUserAuthenticated ? "Go to Practice" : "Get Started"} 
               <ArrowRight size={20} />
             </button>
           </NavLink>

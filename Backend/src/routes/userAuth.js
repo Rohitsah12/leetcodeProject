@@ -1,9 +1,10 @@
 const express = require('express');
 const authRouter = express.Router();
 const jwt = require('jsonwebtoken'); // ADDED
-const { register, login, logout, adminRegister, deleteProfile } = require('../controllers/userAuthent');
+const { register, login, logout, adminRegister, deleteProfile, collegeLogin, collegeRegister, collegeLogout } = require('../controllers/userAuthent');
 const userMiddleware = require('../middleware/userMiddleWare');
 const passport = require('passport');
+const collegeMiddleware = require('../middleware/collegeMiddleware');
 
 // Existing routes
 authRouter.post('/register', register);
@@ -61,5 +62,22 @@ authRouter.get('/google/callback',
     res.redirect(`${process.env.FRONTEND_URL}`);
   }
 );
+
+authRouter.post('/collegeAuth/register',collegeRegister)
+authRouter.post('/collegeAuth/login',collegeLogin)
+authRouter.post('/collegeAuth/logout',collegeMiddleware,collegeLogout)
+authRouter.get('/collegeAuth/checkAuth',collegeMiddleware,(req,res)=>{
+  const reply = {
+        collegeName: req.result.collegeName,
+        emailId: req.result.emailId,
+        _id: req.result._id,
+    }
+
+    res.status(200).json({
+        college: reply,
+        message: "Valid user"
+    })
+})
+
 
 module.exports = authRouter;

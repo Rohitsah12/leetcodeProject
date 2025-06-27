@@ -7,7 +7,7 @@ import debounce from 'lodash.debounce';
 import { Funnel, X } from 'lucide-react';
 
 function ProblemPage() {
-  const { user, isAuthenticated } = useSelector((state) => state.auth);
+  const { user, isUserAuthenticated } = useSelector((state) => state.auth);
   const [problems, setProblems] = useState([]);
   const [solvedProblems, setSolvedProblems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -57,7 +57,7 @@ function ProblemPage() {
         setCompanies(companiesResponse.data);
         setTopics(topicsResponse.data);
 
-        if (isAuthenticated && user) {
+        if (isUserAuthenticated && user) {
           try {
             const solvedResponse = await axiosClient.get('/problem/problemSolvedByUser');
             const solvedIds = solvedResponse.data.map(problem => problem._id);
@@ -75,7 +75,7 @@ function ProblemPage() {
     };
 
     fetchData();
-  }, [isAuthenticated, user]);
+  }, [isUserAuthenticated, user]);
 
   const debouncedSearch = useCallback(
     debounce((value) => {
@@ -454,7 +454,7 @@ function ProblemPage() {
                       {capitalize(problem.difficulty)}
                     </span>
                     
-                    {isAuthenticated && (
+                    {isUserAuthenticated && (
                       <span className={`text-sm px-2 py-1 rounded ${solvedProblems.includes(problem._id) ? 'bg-green-500/20 text-green-400' : 'bg-gray-700/50 text-gray-400'}`}>
                         {solvedProblems.includes(problem._id) ? 'Solved' : 'Unsolved'}
                       </span>

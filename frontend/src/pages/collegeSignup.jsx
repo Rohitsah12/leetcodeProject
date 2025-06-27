@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, NavLink } from 'react-router';
-import { registerUser } from '../authSlice';
+import { collegeRegister, registerUser } from '../authSlice';
 import { FaGoogle } from 'react-icons/fa'; // Added Google icon
 import Navbar from '../components/Landing/Navbar';
 
@@ -14,11 +14,11 @@ const signupSchema = z.object({
   password: z.string().min(8, "Password is too weak"),
 });
 
-function Signup() {
+function CollegeSignup() {
   const [showPassword, setShowPassword] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { isUserAuthenticated, loading } = useSelector((state) => state.auth);
+  const { isCollegeAuthenticated, loading } = useSelector((state) => state.auth);
 
   const {
     register,
@@ -27,19 +27,16 @@ function Signup() {
   } = useForm({ resolver: zodResolver(signupSchema) });
 
   useEffect(()=>{
-    if(isUserAuthenticated){
-      navigate('/');
+    if(isCollegeAuthenticated){
+      navigate('/college');
     }
-  },[isUserAuthenticated,navigate])
+  },[isCollegeAuthenticated,navigate])
 
   const onSubmit = (data) => {
-    dispatch(registerUser(data));
+    dispatch(collegeRegister(data));
   };
 
-  // Handle Google signup redirect
-  const handleGoogleSignup = () => {
-    window.location.href = 'http://localhost:3000/user/google';
-  };
+
 
   return (
    
@@ -65,20 +62,6 @@ function Signup() {
             DooCode
           </h2>
 
-          {/* Google Signup Button */}
-          <button
-            onClick={handleGoogleSignup}
-            className="w-full flex items-center justify-center gap-3 py-3 px-4 bg-white text-black rounded-lg font-medium hover:bg-gray-100 transition-colors mb-6"
-          >
-            <FaGoogle className="text-xl" />
-            <span>Sign up with Google</span>
-          </button>
-          
-          <div className="relative flex items-center py-2">
-            <div className="flex-grow border-t border-white/20"></div>
-            <span className="flex-shrink mx-4 text-white/60 text-sm">OR</span>
-            <div className="flex-grow border-t border-white/20"></div>
-          </div>
 
           <form onSubmit={handleSubmit(onSubmit)}>
             {/* First Name */}
@@ -178,7 +161,7 @@ function Signup() {
           <div className="text-center mt-6">
             <span className="text-sm">
               Already have an account?{' '}
-              <NavLink to="/login" className="link link-primary">
+              <NavLink to="/collegeLogin" className="link link-primary">
                 Login
               </NavLink>
             </span>
@@ -189,4 +172,4 @@ function Signup() {
   );
 }
 
-export default Signup;
+export default CollegeSignup;

@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, NavLink } from 'react-router-dom';
-import { loginUser } from '../authSlice';
+import { collegeLogin } from '../authSlice';
 import { FaGoogle } from 'react-icons/fa';
 
 const loginSchema = z.object({
@@ -12,13 +12,13 @@ const loginSchema = z.object({
   password: z.string().min(8, "Password is too weak"),
 });
 
-function Login() {
+function Collegelogin() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   
   // Get both user and college authentication states
   const { 
-    isUserAuthenticated, 
+    isCollegeAuthenticated, 
     loading, 
     error 
   } = useSelector((state) => state.auth);
@@ -31,17 +31,13 @@ function Login() {
 
   // Navigate if either user or college is authenticated
   useEffect(() => {
-    if (isUserAuthenticated ) {
-      navigate('/');
+    if (isCollegeAuthenticated ) {
+      navigate('/college');
     }
-  }, [isUserAuthenticated, navigate]);
+  }, [isCollegeAuthenticated, navigate]);
 
   const onSubmit = (data) => {
-    dispatch(loginUser(data));
-  };
-
-  const handleGoogleLogin = () => {
-    window.location.href = 'http://localhost:3000/user/google';
+    dispatch(collegeLogin(data));
   };
 
   return (
@@ -64,20 +60,6 @@ function Login() {
         <div className="relative z-10">
           <h2 className="text-4xl font-bold text-center text-white mb-6 tracking-wide">DooCode</h2>
           
-          {/* Google Login Button */}
-          <button
-            onClick={handleGoogleLogin}
-            className="w-full flex items-center justify-center gap-3 py-3 px-4 bg-white text-black rounded-lg font-medium hover:bg-gray-100 transition-colors mb-6"
-          >
-            <FaGoogle className="text-xl" />
-            <span>Sign in with Google</span>
-          </button>
-          
-          <div className="relative flex items-center py-2">
-            <div className="flex-grow border-t border-white/20"></div>
-            <span className="flex-shrink mx-4 text-white/60 text-sm">OR</span>
-            <div className="flex-grow border-t border-white/20"></div>
-          </div>
 
           <form onSubmit={handleSubmit(onSubmit)}>
             {/* Email */}
@@ -123,7 +105,7 @@ function Login() {
             {/* Error from Backend */}
             {error && (
               <div className="text-error text-sm text-center mt-4">
-                {typeof error === 'string' ? error : 'Login failed. Please try again.'}
+                {typeof error === 'string' ? error : 'Collegelogin failed. Please try again.'}
               </div>
             )}
 
@@ -145,7 +127,7 @@ function Login() {
           <div className="text-center mt-6">
             <span className="text-sm text-white">
               Don't have an account?{' '}
-              <NavLink to="/signup" className="link link-primary">
+              <NavLink to="/collegeSignup" className="link link-primary">
                 Sign Up
               </NavLink>
             </span>
@@ -156,4 +138,4 @@ function Login() {
   );
 }
 
-export default Login;
+export default Collegelogin;

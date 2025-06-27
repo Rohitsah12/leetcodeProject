@@ -1,18 +1,18 @@
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Navigate, NavLink } from 'react-router-dom';
-import { logoutUser } from '../../authSlice';
+import { logoutCollege, logoutUser } from '../../authSlice';
 
-const Navbar = () => {
+const CollegeNavbar = () => {
   const dispatch = useDispatch();
-  const { isUserAuthenticated, user, loading } = useSelector((state) => state.auth);
+  const { isCollegeAuthenticated, college, loading } = useSelector((state) => state.auth);
 
   if (loading) {
     return null;
   }
   const handleLogout = () => {
-    dispatch(logoutUser());
-    Navigate('/'); // Redirect to home page after logout
+    dispatch(logoutCollege());
+    Navigate('/college'); 
   };
 
   // Active link style handler
@@ -47,7 +47,7 @@ const Navbar = () => {
             Home
           </NavLink>
           <NavLink 
-            to={isUserAuthenticated ? '/problemset' : '/signup'}
+            to={isCollegeAuthenticated ? '/problemset' : '/signup'}
             style={getActiveStyle}
             className="hover:text-gray-300 transition"
           >
@@ -59,8 +59,8 @@ const Navbar = () => {
         </div>
 
         <div className="flex space-x-4 items-center">
-          {!isUserAuthenticated ? (
-            <NavLink to="/signup">
+          {!isCollegeAuthenticated ? (
+            <NavLink to="/collegeSignup">
               <span className="cursor-pointer text-black border border-gray-300 rounded-full px-4 py-2 bg-white hover:scale-105 transition duration-300 shadow-md">
                 Signup
               </span>
@@ -72,9 +72,9 @@ const Navbar = () => {
                 className="btn btn-ghost px-2 flex items-center gap-2 hover:bg-white/10 rounded-full transition"
               >
                 <div className="w-8 h-8 rounded-full bg-white text-black flex items-center justify-center font-bold text-sm border border-white">
-                  {user?.firstName?.charAt(0)?.toUpperCase() || 'U'}
+                  {college?.collegeName?.charAt(0)?.toUpperCase() || 'U'}
                 </div>
-                <span className="text-sm">{user?.firstName}</span>
+                <span className="text-sm">{college?.collegeName}</span>
               </div>
 
               <ul
@@ -82,13 +82,10 @@ const Navbar = () => {
                 className="mt-3 z-[1] p-2 shadow menu dropdown-content bg-white/10 backdrop-blur border border-white/10 rounded-box w-52 text-white"
               >
                 <li>
-                  <NavLink to='/myprofile'>My Profile</NavLink>
-                </li>
-                <li>
                   <button onClick={handleLogout}>Sign out</button>
                 </li>
 
-                {user?.role === 'admin' && (
+                {college?.role === 'admin' && (
                   <li>
                     <NavLink 
                       to="/admin"
@@ -109,4 +106,4 @@ const Navbar = () => {
   );
 };
 
-export default Navbar; 
+export default CollegeNavbar; 
