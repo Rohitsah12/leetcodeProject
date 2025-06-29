@@ -12,9 +12,7 @@ import Admin from './pages/Admin';
 import MyProfile from './pages/MyProfile';
 import Problem from './pages/Problem';
 import CreateProblem from './components/AdminPanel/CreateProblem';
-import { Delete } from 'lucide-react';
 import DeleteProblem from './components/AdminPanel/DeleteProblem';
-import AdminUpload from './components/AdminPanel/UploadVideo';
 import UploadVideo from './components/AdminPanel/UploadVideo';
 import AdminVideo from './components/AdminPanel/AdminVideo';
 import UpdateProblemList from './components/AdminPanel/UpdateProblemList';
@@ -22,29 +20,34 @@ import UpdateProblem from './components/AdminPanel/UpdateProblem';
 import CollegeLanding from './pages/CollegeLanding';
 import Collegelogin from './pages/collegeLogin';
 import CollegeSignup from './pages/collegeSignup';
+import GoogleCallback from './components/GoogleCallback';
 
 const App = () => {
   const dispatch = useDispatch();
   const location = useLocation();
-  const { isUserAuthenticated,isCollegeAuthenticated,  user, loading,userCheckComplete  } = useSelector((state) => state.auth);
+  
+  const { 
+    isUserAuthenticated,
+    isCollegeAuthenticated,
+    user,
+    loading,
+    userCheckComplete,
+    collegeCheckComplete
+  } = useSelector((state) => state.auth);
 
   // Check authentication on app load
   useEffect(() => {
-    if(isUserAuthenticated){
-      dispatch(checkAuth());  
-    }
-    else{
-      dispatch(checkCollegeAuth());
-    }
+    dispatch(checkAuth());
+    dispatch(checkCollegeAuth());
   }, [dispatch]);
-
-
 
   // Show loading spinner only for protected routes
   const protectedRoutes = ['/problemset', '/admin', '/problem'];
   const isProtectedRoute = protectedRoutes.some(route => location.pathname.startsWith(route));
   
-  if (!userCheckComplete && isProtectedRoute) {
+  const authChecksComplete = userCheckComplete && collegeCheckComplete;
+  
+  if (!authChecksComplete && isProtectedRoute) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <span className="loading loading-spinner loading-lg"></span>
@@ -63,19 +66,14 @@ const App = () => {
       <Route path='*' element={<PageNotFound />} />
       <Route path='/myprofile' element={<MyProfile />} />
       <Route path="/problem/:problemId" element={<Problem/>}></Route>
-      <Route path="/admin/create" element={isUserAuthenticated && user?.role  === 'admin' ? <CreateProblem /> : <Navigate to="/" />} />
-      <Route path="/admin/delete" element={isUserAuthenticated && user?.role === 'admin' ? <DeleteProblem /> : <Navigate to="/" />} />
-      <Route path="/admin/video" element={isUserAuthenticated && user?.role === 'admin' ? <AdminVideo /> : <Navigate to="/" />} />
-      <Route path="/admin/upload/:problemId" element={isUserAuthenticated && user?.role === 'admin' ? <UploadVideo /> : <Navigate to="/" />} />
-      <Route path="/admin/update" element={isUserAuthenticated && user?.role === 'admin' ? <UpdateProblemList /> : <Navigate to="/" />} />
-      <Route path="/admin/update/:problemId" element={isUserAuthenticated && user?.role === 'admin' ? <UpdateProblem /> : <Navigate to="/" />} />
+      <Route path="/auth/google/callback" element={<GoogleCallback />} />
       <Route path='/college' element={<CollegeLanding />}/>
       
       {/* Protected routes */}
       <Route 
         path='/problemset' 
         element={
-          userCheckComplete && isUserAuthenticated ? 
+          isUserAuthenticated ? 
             <ProblemPage /> : 
             <Navigate to="/login" replace />
         } 
@@ -83,7 +81,7 @@ const App = () => {
       <Route 
         path='/problem/:id' 
         element={
-          userCheckComplete && isUserAuthenticated ? 
+          isUserAuthenticated ? 
             <ProblemSolvePage /> : 
             <Navigate to="/login" replace />
         } 
@@ -91,8 +89,56 @@ const App = () => {
       <Route 
         path='/admin' 
         element={
-          userCheckComplete && isUserAuthenticated && user?.role === 'admin' ? 
+          isUserAuthenticated && user?.role === 'admin' ? 
             <Admin /> : 
+            <Navigate to="/" replace />
+        } 
+      />
+      <Route 
+        path="/admin/create" 
+        element={
+          isUserAuthenticated && user?.role === 'admin' ? 
+            <CreateProblem /> : 
+            <Navigate to="/" replace />
+        } 
+      />
+      <Route 
+        path="/admin/delete" 
+        element={
+          isUserAuthenticated && user?.role === 'admin' ? 
+            <DeleteProblem /> : 
+            <Navigate to="/" replace />
+        } 
+      />
+      <Route 
+        path="/admin/video" 
+        element={
+          isUserAuthenticated && user?.role === 'admin' ? 
+            <AdminVideo /> : 
+            <Navigate to="/" replace />
+        } 
+      />
+      <Route 
+        path="/admin/upload/:problemId" 
+        element={
+          isUserAuthenticated && user?.role === 'admin' ? 
+            <UploadVideo /> : 
+            <Navigate to="/" replace />
+        } 
+      />
+      <Route 
+        path="/admin/update" 
+        element={
+          isUserAuthenticated && user?.role === 'admin' ? 
+            <UpdateProblemList /> : 
+            <Navigate to="/" replace />
+        } 
+      />
+      <Route 
+        path="/admin/update/:problemId" 
+        element={
+          isUserAuthenticated && user?.role === 'admin' ? 
+            <UpdateProblem /> : 
             <Navigate to="/" replace />
         } 
       />

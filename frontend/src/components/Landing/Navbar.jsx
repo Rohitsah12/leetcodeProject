@@ -12,7 +12,7 @@ const Navbar = () => {
   }
   const handleLogout = () => {
     dispatch(logoutUser());
-    Navigate('/'); // Redirect to home page after logout
+    Navigate('/'); 
   };
 
   // Active link style handler
@@ -53,7 +53,8 @@ const Navbar = () => {
           >
             Problem
           </NavLink>
-          <NavLink to='/college' >
+          <NavLink to='/college'
+          style={getActiveStyle} >
             College
           </NavLink>
         </div>

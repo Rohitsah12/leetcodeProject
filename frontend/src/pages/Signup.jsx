@@ -3,22 +3,21 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate, NavLink } from 'react-router';
+import { useNavigate, NavLink } from 'react-router-dom';
 import { registerUser } from '../authSlice';
-import { FaGoogle } from 'react-icons/fa'; // Added Google icon
-import Navbar from '../components/Landing/Navbar';
+import { FaGoogle } from 'react-icons/fa';
 
 const signupSchema = z.object({
-  firstName: z.string().min(3, "Minimum character should be 3"),
-  emailId: z.string().email("Invalid Email"),
-  password: z.string().min(8, "Password is too weak"),
+  firstName: z.string().min(3, "Name must be at least 3 characters"),
+  emailId: z.string().email("Invalid email address"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
 });
 
 function Signup() {
   const [showPassword, setShowPassword] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { isUserAuthenticated, loading } = useSelector((state) => state.auth);
+  const { isUserAuthenticated, loading, error } = useSelector((state) => state.auth);
 
   const {
     register,
@@ -26,23 +25,22 @@ function Signup() {
     formState: { errors },
   } = useForm({ resolver: zodResolver(signupSchema) });
 
-  useEffect(()=>{
-    if(isUserAuthenticated){
+  useEffect(() => {
+    if (isUserAuthenticated) {
       navigate('/');
     }
-  },[isUserAuthenticated,navigate])
+  }, [isUserAuthenticated, navigate]);
 
   const onSubmit = (data) => {
     dispatch(registerUser(data));
   };
 
-  // Handle Google signup redirect
   const handleGoogleSignup = () => {
-    window.location.href = 'http://localhost:3000/user/google';
+    // Add redirect_uri parameter to Google login URL
+    window.location.href = 'http://localhost:3000/user/google?redirect_uri=http://localhost:5173/auth/google/callback';
   };
 
   return (
-   
     <div
       className="min-h-screen flex items-center justify-center p-4 bg-black text-white"
       style={{
@@ -65,7 +63,6 @@ function Signup() {
             DooCode
           </h2>
 
-          {/* Google Signup Button */}
           <button
             onClick={handleGoogleSignup}
             className="w-full flex items-center justify-center gap-3 py-3 px-4 bg-white text-black rounded-lg font-medium hover:bg-gray-100 transition-colors mb-6"
@@ -80,8 +77,13 @@ function Signup() {
             <div className="flex-grow border-t border-white/20"></div>
           </div>
 
+          {error && (
+            <div className="mb-4 p-3 bg-red-900/50 text-red-200 rounded-lg">
+              {error}
+            </div>
+          )}
+
           <form onSubmit={handleSubmit(onSubmit)}>
-            {/* First Name */}
             <div className="form-control">
               <label htmlFor="firstName" className="label">
                 <span className="label-text text-white">First Name</span>
@@ -93,7 +95,7 @@ function Signup() {
                 autoComplete="given-name"
                 className={`input input-bordered w-full bg-transparent text-white placeholder-gray-400 focus:ring-2 focus:ring-primary transition-all duration-200 ${
                   errors.firstName ? 'input-error' : '' 
-                }` }
+                }`}
                 {...register('firstName')}
               />
               {errors.firstName && (
@@ -101,7 +103,6 @@ function Signup() {
               )}
             </div>
 
-            {/* Email */}
             <div className="form-control mt-4">
               <label htmlFor="emailId" className="label">
                 <span className="label-text text-white">Email</span>
@@ -121,7 +122,6 @@ function Signup() {
               )}
             </div>
 
-            {/* Password */}
             <div className="form-control mt-4">
               <label htmlFor="password" className="label">
                 <span className="label-text text-white">Password</span>
@@ -164,7 +164,7 @@ function Signup() {
             <div className="form-control mt-8 flex justify-center">
               <button
                 type="submit"
-                className={`btn text-black bg-white ${
+                className={`btn text-black bg-white w-full ${
                   loading ? 'loading' : ''
                 }`}
                 disabled={loading}
