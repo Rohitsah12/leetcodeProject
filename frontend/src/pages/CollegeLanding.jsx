@@ -10,7 +10,9 @@ const CollegeLanding = () => {
         backgroundPosition: 'center',
       }}>
     <CollegeNavbar />
-      Welcome to My College
+    <div className=' flex justify-center'>
+       Welcome Make Your Coding Culture more and more better
+    </div>
     </div>
   )
 }

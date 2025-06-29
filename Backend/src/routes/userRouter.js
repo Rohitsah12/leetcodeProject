@@ -6,9 +6,25 @@ const Submission = require('../models/submission');
 const userRouter = express.Router();
 
 // ✅ Get user profile info
-userRouter.get('/profile', userMiddleware, async (req, res) => {
+
+
+userRouter.get('/profileName/:id',async(req,res)=>{
+ try{
+   const user = await User.findById(req.params.id).select('-password');
+  //  console.log(user.firstName,user.lastName   );
+    res.json({ firstName: user.firstName, lastName: user.lastName });
+
+ }
+ catch (err) {
+    console.error('Error fetching profile:', err);
+    res.status(500).json({ message: 'Error fetching profile' });
+  }
+
+})
+userRouter.get('/profile/:id', userMiddleware, async (req, res) => {
   try {
-    const user = await User.findById(req.result._id).select('-password');
+    
+    const user = await User.findById(req.params.id).select('-password');
     res.json(user);
   } catch (err) {
     console.error('Error fetching profile:', err);

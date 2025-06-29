@@ -83,7 +83,7 @@ const Navbar = () => {
                 className="mt-3 z-[1] p-2 shadow menu dropdown-content bg-white/10 backdrop-blur border border-white/10 rounded-box w-52 text-white"
               >
                 <li>
-                  <NavLink to='/myprofile'>My Profile</NavLink>
+                 <NavLink to={`/myprofile/${user._id}`}>My Profile</NavLink>
                 </li>
                 <li>
                   <button onClick={handleLogout}>Sign out</button>

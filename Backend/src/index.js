@@ -14,6 +14,7 @@ const session = require('express-session');
 const MongoStore = require('connect-mongo');
 const passport = require('passport'); 
 const userRouter = require('./routes/userRouter');
+const collegeRouter = require('./routes/college');
 
 app.use(cors({
     origin: process.env.FRONTEND_URL,
@@ -49,7 +50,7 @@ app.use('/submission', submitRouter)
 app.use('/ai', aiRouter);
 app.use('/video', videoRouter)
 app.use('/userProfile',userRouter)
-
+app.use('/college',collegeRouter)
 
 const InitializeConnection = async () => {
     try {

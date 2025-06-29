@@ -5,9 +5,11 @@ import { Flame, UserCircle, Calendar, Trophy, CheckCircle, XCircle, Clock, Star 
 import Navbar from '../components/Landing/navbar';
 import CalendarHeatmap from 'react-calendar-heatmap';
 import 'react-calendar-heatmap/dist/styles.css';
+import { useParams } from 'react-router';
 
 const MyProfile = () => {
   const { user: authUser } = useSelector(state => state.auth);
+  const {id}=useParams()
   const [profile, setProfile] = useState(null);
   const [heatmap, setHeatmap] = useState({});
   const [submissions, setSubmissions] = useState([]);
@@ -23,7 +25,7 @@ const MyProfile = () => {
         setApiErrors({});
         
         // Fetch profile data
-        const profileRes = await axiosClient.get('/userProfile/profile');
+        const profileRes = await axiosClient.get(`/userProfile/profile/${id}`);
         setProfile(profileRes.data);
         
         // Fetch problem details for solved problems

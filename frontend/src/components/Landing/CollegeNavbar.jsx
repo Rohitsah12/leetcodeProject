@@ -39,23 +39,19 @@ const CollegeNavbar = () => {
         </div>
 
         <div className="flex space-x-6">
-          <NavLink 
-            to='/' 
-            style={getActiveStyle}
-            className="hover:text-gray-300 transition"
-          >
-            Home
+          <NavLink  to='/college'  end
+          style={getActiveStyle}>
+              College
           </NavLink>
-          <NavLink 
-            to={isCollegeAuthenticated ? '/problemset' : '/signup'}
-            style={getActiveStyle}
-            className="hover:text-gray-300 transition"
-          >
-            Problem
+          <NavLink to={isCollegeAuthenticated?'/college/managestudents':'/collegeSignup'}
+          style={getActiveStyle} >
+            Manage Students
           </NavLink>
-          <NavLink to='/college' >
-            College
+          <NavLink to='/*' 
+          style={getActiveStyle}>
+            Assign Task
           </NavLink>
+
         </div>
 
         <div className="flex space-x-4 items-center">
