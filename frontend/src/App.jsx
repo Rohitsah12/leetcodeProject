@@ -25,6 +25,7 @@ import ManageStudent from './pages/ManageStudent';
 import AddStudent from './components/ManageStudents/AddStudent';
 import DeleteStudent from './components/ManageStudents/DeleteStudent';
 import UpdateStudent from './components/ManageStudents/UpdateStudent';
+import Students from './pages/Students';
 
 const App = () => {
   const dispatch = useDispatch();
@@ -46,7 +47,7 @@ const App = () => {
 
   // Show loading spinner for protected routes
   const protectedUserRoutes = ['/problemset', '/admin', '/problem'];
-  const protectedCollegeRoutes = ['/college/managestudents'];
+  const protectedCollegeRoutes = ['/college/managestudents','/college/students'];
   
   const isProtectedUserRoute = protectedUserRoutes.some(route => location.pathname.startsWith(route));
   const isProtectedCollegeRoute = protectedCollegeRoutes.some(route => location.pathname.startsWith(route));
@@ -185,10 +186,18 @@ const App = () => {
         } 
       />
       <Route 
-        path='/college/managestudents/student' 
+        path='/college/managestudents/update' 
         element={
           isCollegeAuthenticated ? 
             <UpdateStudent /> : 
+            <Navigate to='/collegeLogin' replace />
+        } 
+      />
+      <Route 
+        path='/college/students' 
+        element={
+          isCollegeAuthenticated ? 
+            <Students /> : 
             <Navigate to='/collegeLogin' replace />
         } 
       />

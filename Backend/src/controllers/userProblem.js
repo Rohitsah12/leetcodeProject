@@ -239,20 +239,33 @@ const solvedAllProblembyUser =  async(req,res)=>{
     try{
        
       const userId = req.result._id;
-
       const user =  await User.findById(userId).populate({
         path:"problemSolved",
         select:"_id title difficulty tags"
       });
       
       res.status(200).send(user.problemSolved);
-
     }
     catch(err){
       res.status(500).send("Server Error");
     }
 }
 
+const solvedAllProblembyUserCOllege=async(req,res)=>{
+  try {
+    const userId=req.params.userId;
+
+    
+    const user =  await User.findById(userId).populate({
+        path:"problemSolved",
+        select:"_id title difficulty tags"
+      });      
+      res.status(200).send(user.problemSolved);
+
+  } catch (error) {
+      res.status(500).send("server Error")
+  }
+}
 const submittedProblem = async (req, res) => {
   try {
     const userId = req.result._id;
@@ -279,6 +292,6 @@ const submittedProblem = async (req, res) => {
 
 
 
-module.exports = {createProblem,updateProblem,deleteProblem,getProblemById,getAllProblem,solvedAllProblembyUser,submittedProblem};
+module.exports = {createProblem,updateProblem,deleteProblem,getProblemById,getAllProblem,solvedAllProblembyUser,submittedProblem,solvedAllProblembyUserCOllege};
 
 

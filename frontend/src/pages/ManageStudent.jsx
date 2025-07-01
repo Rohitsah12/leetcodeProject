@@ -99,7 +99,7 @@ const ManageStudent = () => {
       title: 'Update Student',
       description: 'Edit existing student information and details',
       icon: UserCheck,
-      route: '/college/managestudents/student'
+      route: '/college/managestudents/update'
     }
   ];
 

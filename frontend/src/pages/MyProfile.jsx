@@ -24,7 +24,6 @@ const MyProfile = () => {
         setLoading(true);
         setApiErrors({});
         
-        // Fetch profile data
         const profileRes = await axiosClient.get(`/userProfile/profile/${id}`);
         setProfile(profileRes.data);
         

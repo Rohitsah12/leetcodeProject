@@ -22,7 +22,6 @@ const submitBatch = async (submissions) => {
   });
   return response.data;
 };
-
 const submitToken = async (tokens) => {
   const response = await axios.get(`http://localhost:2358/submissions/batch?tokens=${tokens.join(',')}`);
   return response.data.submissions;

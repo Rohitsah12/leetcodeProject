@@ -25,6 +25,6 @@ const studentSchema = new Schema({
 }, {
   timestamps: true
 });
-
+studentSchema.index({ college: 1, year: 1 });
 const Student = mongoose.model("student", studentSchema);
 module.exports = Student;

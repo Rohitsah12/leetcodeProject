@@ -5,7 +5,6 @@ const Submission = require('../models/submission');
 
 const userRouter = express.Router();
 
-// ✅ Get user profile info
 
 
 userRouter.get('/profileName/:id',async(req,res)=>{
@@ -21,7 +20,7 @@ userRouter.get('/profileName/:id',async(req,res)=>{
   }
 
 })
-userRouter.get('/profile/:id', userMiddleware, async (req, res) => {
+userRouter.get('/profile/:id', async (req, res) => {
   try {
     
     const user = await User.findById(req.params.id).select('-password');
@@ -33,7 +32,7 @@ userRouter.get('/profile/:id', userMiddleware, async (req, res) => {
 });
 
 // ✅ Update profile image (Cloudinary URL)
-userRouter.put('/profile/image', userMiddleware, async (req, res) => {
+userRouter.put('/profile/image', async (req, res) => {
   try {
     const { profileImage } = req.body;
     if (!profileImage) return res.status(400).json({ message: 'Image URL is required' });
@@ -48,7 +47,7 @@ userRouter.put('/profile/image', userMiddleware, async (req, res) => {
 
 //
 // Update your heatmap route to use UTC dates for consistent comparison
-userRouter.get('/heatmap', userMiddleware, async (req, res) => {
+userRouter.get('/heatmap',  async (req, res) => {
   try {
     const userId = req.result._id;
 
@@ -84,7 +83,7 @@ userRouter.get('/heatmap', userMiddleware, async (req, res) => {
 });
 
 // ✅ Get submission history
-userRouter.get('/submissions', userMiddleware, async (req, res) => {
+userRouter.get('/submissions',  async (req, res) => {
   try {
     const submissions = await Submission.find({ userId: req.result._id })
       .populate('problemId', 'title')

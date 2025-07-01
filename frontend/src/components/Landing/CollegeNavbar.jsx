@@ -1,7 +1,7 @@
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Navigate, NavLink } from 'react-router-dom';
-import { logoutCollege, logoutUser } from '../../authSlice';
+import { logoutCollege} from '../../authSlice';
 
 const CollegeNavbar = () => {
   const dispatch = useDispatch();
@@ -43,15 +43,19 @@ const CollegeNavbar = () => {
           style={getActiveStyle}>
               College
           </NavLink>
-          <NavLink to={isCollegeAuthenticated?'/college/managestudents':'/collegeSignup'}
-          style={getActiveStyle} >
-            Manage Students
+          <NavLink to={isCollegeAuthenticated?'/college/students':'/collegeSignup'} 
+          style={getActiveStyle}>
+            Students
           </NavLink>
           <NavLink to='/*' 
           style={getActiveStyle}>
             Assign Task
           </NavLink>
 
+          <NavLink to={isCollegeAuthenticated?'/college/managestudents':'/collegeSignup'}
+          style={getActiveStyle} >
+            Manage Students
+          </NavLink>
         </div>
 
         <div className="flex space-x-4 items-center">
