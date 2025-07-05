@@ -82,7 +82,6 @@ userRouter.get('/heatmap', userMiddleware, async (req, res) => {
   }
 });
 
-// ✅ Get submission history
 userRouter.get('/submissions', userMiddleware, async (req, res) => {
   try {
     const submissions = await Submission.find({ userId: req.result._id })
