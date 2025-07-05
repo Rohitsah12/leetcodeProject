@@ -47,7 +47,7 @@ userRouter.put('/profile/image', async (req, res) => {
 
 //
 // Update your heatmap route to use UTC dates for consistent comparison
-userRouter.get('/heatmap',  async (req, res) => {
+userRouter.get('/heatmap', userMiddleware, async (req, res) => {
   try {
     const userId = req.result._id;
 
@@ -83,7 +83,7 @@ userRouter.get('/heatmap',  async (req, res) => {
 });
 
 // ✅ Get submission history
-userRouter.get('/submissions',  async (req, res) => {
+userRouter.get('/submissions', userMiddleware, async (req, res) => {
   try {
     const submissions = await Submission.find({ userId: req.result._id })
       .populate('problemId', 'title')

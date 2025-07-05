@@ -53,6 +53,13 @@ const Navbar = () => {
           >
             Problem
           </NavLink>
+          <NavLink 
+            to={isUserAuthenticated ? '/eventTracker' : '/signup'}
+            style={getActiveStyle}
+            className="hover:text-gray-300 transition"
+          >
+            Event Tracker
+          </NavLink>
           <NavLink to='/college'
           style={getActiveStyle} >
             College

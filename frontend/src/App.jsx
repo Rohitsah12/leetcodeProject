@@ -26,6 +26,7 @@ import AddStudent from './components/ManageStudents/AddStudent';
 import DeleteStudent from './components/ManageStudents/DeleteStudent';
 import UpdateStudent from './components/ManageStudents/UpdateStudent';
 import Students from './pages/Students';
+import EventTracker from './pages/EventTracker';
 
 const App = () => {
   const dispatch = useDispatch();
@@ -85,6 +86,7 @@ const App = () => {
       <Route path="/problem/:problemId" element={<Problem/>}></Route>
       <Route path="/auth/google/callback" element={<GoogleCallback />} />
       <Route path='/college' element={<CollegeLanding />}/>
+      <Route path='/eventTracker' element={<EventTracker />}></Route>
       
       {/* User Protected routes */}
       <Route 
