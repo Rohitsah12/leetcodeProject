@@ -21,6 +21,10 @@ function ProblemPage() {
   const [companySearch, setCompanySearch] = useState('');
   const [topicSearch, setTopicSearch] = useState('');
   
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [problemsPerPage] = useState(10);
+  
   // Initialize filters with proper structure
   const initialFilters = {
     difficulty: [],
@@ -76,6 +80,11 @@ function ProblemPage() {
 
     fetchData();
   }, [isUserAuthenticated, user]);
+
+  // Reset to first page when filters or search change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters, search, sortOrder]);
 
   const debouncedSearch = useCallback(
     debounce((value) => {
@@ -146,6 +155,17 @@ function ProblemPage() {
     
     return aOrder - bOrder;
   });
+
+  // Pagination logic
+  const indexOfLastProblem = currentPage * problemsPerPage;
+  const indexOfFirstProblem = indexOfLastProblem - problemsPerPage;
+  const currentProblems = sortedProblems.slice(indexOfFirstProblem, indexOfLastProblem);
+  const totalPages = Math.ceil(sortedProblems.length / problemsPerPage);
+
+  // Change page
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+  const nextPage = () => setCurrentPage(prev => Math.min(prev + 1, totalPages));
+  const prevPage = () => setCurrentPage(prev => Math.max(prev - 1, 1));
 
   const getBadgeColor = (difficulty) => {
     switch (difficulty.toLowerCase()) {
@@ -384,107 +404,171 @@ function ProblemPage() {
               </button>
             </div>
           ) : (
-            <div className='grid grid-cols-1 gap-4'>
-              {sortedProblems.map((problem) => (
-                <div 
-                  key={problem._id} 
-                  className='border border-gray-700 p-4 rounded-xl flex flex-col md:flex-row justify-between items-start md:items-center transition-all duration-300 hover:border-orange-500'
-                  style={{
-                    background: 'linear-gradient(135deg, rgba(30, 30, 30, 0.7), rgba(60, 60, 60, 0.3))',
-                    backdropFilter: 'blur(10px)',
-                  }}
-                >
-                  <div className="flex-1">
-                    <NavLink to={`/problem/${problem._id}`}
-                      className="text-lg font-semibold transition-colors duration-200 cursor-pointer hover:text-orange-500"
-                    >
-                      {problem.title}
-                    </NavLink>
-                    
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {/* Companies */}
-                      {problem.companies && problem.companies.length > 0 && (
-                        <div className="flex items-center gap-1">
-                          <span className="text-xs text-gray-400">Companies:</span>
-                          <div className="flex flex-wrap gap-1">
-                            {problem.companies.slice(0, 3).map((company, index) => (
-                              <span
-                                key={index}
-                                className="text-xs px-2 py-1 bg-gray-700/50 rounded-full"
-                              >
-                                {company}
-                              </span>
-                            ))}
-                            {problem.companies.length > 3 && (
-                              <span className="text-xs px-2 py-1 bg-gray-700/50 rounded-full">
-                                +{problem.companies.length - 3} 
-                              </span>
-                            )}
+            <>
+              <div className='grid grid-cols-1 gap-4 mb-6'>
+                {currentProblems.map((problem) => (
+                  <div 
+                    key={problem._id} 
+                    className='border border-gray-700 p-4 rounded-xl flex flex-col md:flex-row justify-between items-start md:items-center transition-all duration-300 hover:border-orange-500'
+                    style={{
+                      background: 'linear-gradient(135deg, rgba(30, 30, 30, 0.7), rgba(60, 60, 60, 0.3))',
+                      backdropFilter: 'blur(10px)',
+                    }}
+                  >
+                    <div className="flex-1">
+                      <NavLink to={`/problem/${problem._id}`}
+                        className="text-lg font-semibold transition-colors duration-200 cursor-pointer hover:text-orange-500"
+                      >
+                        {problem.title}
+                      </NavLink>
+                      
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {/* Companies */}
+                        {problem.companies && problem.companies.length > 0 && (
+                          <div className="flex items-center gap-1">
+                            <span className="text-xs text-gray-400">Companies:</span>
+                            <div className="flex flex-wrap gap-1">
+                              {problem.companies.slice(0, 3).map((company, index) => (
+                                <span
+                                  key={index}
+                                  className="text-xs px-2 py-1 bg-gray-700/50 rounded-full"
+                                >
+                                  {company}
+                                </span>
+                              ))}
+                              {problem.companies.length > 3 && (
+                                <span className="text-xs px-2 py-1 bg-gray-700/50 rounded-full">
+                                  +{problem.companies.length - 3} 
+                                </span>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      )}
+                        )}
 
-                      {/* Tags */}
-                      {problem.tags && problem.tags.length > 0 && (
-                        <div className="flex items-center gap-1">
-                          <span className="text-xs text-gray-400">Topics:</span>
-                          <div className="flex flex-wrap gap-1">
-                            {problem.tags.slice(0, 3).map((tag, index) => (
-                              <span
-                                key={index}
-                                className="text-xs px-2 py-1 bg-gray-700/50 rounded-full"
-                              >
-                                {capitalize(tag)}
-                              </span>
-                            ))}
-                            {problem.tags.length > 3 && (
-                              <span className="text-xs px-2 py-1 bg-gray-700/50 rounded-full">
-                                +{problem.tags.length - 3} 
-                              </span>
-                            )}
+                        {/* Tags */}
+                        {problem.tags && problem.tags.length > 0 && (
+                          <div className="flex items-center gap-1">
+                            <span className="text-xs text-gray-400">Topics:</span>
+                            <div className="flex flex-wrap gap-1">
+                              {problem.tags.slice(0, 3).map((tag, index) => (
+                                <span
+                                  key={index}
+                                  className="text-xs px-2 py-1 bg-gray-700/50 rounded-full"
+                                >
+                                  {capitalize(tag)}
+                                </span>
+                              ))}
+                              {problem.tags.length > 3 && (
+                                <span className="text-xs px-2 py-1 bg-gray-700/50 rounded-full">
+                                  +{problem.tags.length - 3} 
+                                </span>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      )} 
+                        )} 
+                      </div>
+
                     </div>
-
+                    
+                    <div className='flex gap-4 items-center mt-3 md:mt-0'>
+                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getBadgeColor(problem.difficulty)}`}>
+                        {capitalize(problem.difficulty)}
+                      </span>
+                      
+                      {isUserAuthenticated && (
+                        <span className={`text-sm px-2 py-1 rounded ${solvedProblems.includes(problem._id) ? 'bg-green-500/20 text-green-400' : 'bg-gray-700/50 text-gray-400'}`}>
+                          {solvedProblems.includes(problem._id) ? 'Solved' : 'Unsolved'}
+                        </span>
+                      )}
+                      
+                      <NavLink
+                        to={`/problem/${problem._id}`}
+                        className="px-4 py-2 rounded transition-colors duration-200 flex items-center gap-1"
+                        style={{
+                          color: '#FFA500',
+                          border: '1px solid #FFA500',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = '#FFA500';
+                          e.currentTarget.style.color = 'black';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = '';
+                          e.currentTarget.style.color = '#FFA500';
+                        }}
+                      >
+                        Solve
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                        </svg>
+                      </NavLink>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="flex flex-col items-center justify-center mt-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <button 
+                      onClick={prevPage}
+                      disabled={currentPage === 1}
+                      className={`px-4 py-2 rounded-md ${
+                        currentPage === 1 
+                          ? 'bg-gray-800 text-gray-500 cursor-not-allowed' 
+                          : 'bg-gray-700 hover:bg-orange-500 hover:text-black'
+                      }`}
+                    >
+                      Previous
+                    </button>
+                    
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      let pageNum;
+                      if (totalPages <= 5) {
+                        pageNum = i + 1;
+                      } else if (currentPage <= 3) {
+                        pageNum = i + 1;
+                      } else if (currentPage >= totalPages - 2) {
+                        pageNum = totalPages - 4 + i;
+                      } else {
+                        pageNum = currentPage - 2 + i;
+                      }
+                      
+                      return (
+                        <button
+                          key={pageNum}
+                          onClick={() => paginate(pageNum)}
+                          className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                            currentPage === pageNum
+                              ? 'bg-orange-500 text-black font-bold'
+                              : 'bg-gray-700 hover:bg-gray-600'
+                          }`}
+                        >
+                          {pageNum}
+                        </button>
+                      );
+                    })}
+                    
+                    <button 
+                      onClick={nextPage}
+                      disabled={currentPage === totalPages}
+                      className={`px-4 py-2 rounded-md ${
+                        currentPage === totalPages 
+                          ? 'bg-gray-800 text-gray-500 cursor-not-allowed' 
+                          : 'bg-gray-700 hover:bg-orange-500 hover:text-black'
+                      }`}
+                    >
+                      Next
+                    </button>
                   </div>
                   
-                  <div className='flex gap-4 items-center mt-3 md:mt-0'>
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getBadgeColor(problem.difficulty)}`}>
-                      {capitalize(problem.difficulty)}
-                    </span>
-                    
-                    {isUserAuthenticated && (
-                      <span className={`text-sm px-2 py-1 rounded ${solvedProblems.includes(problem._id) ? 'bg-green-500/20 text-green-400' : 'bg-gray-700/50 text-gray-400'}`}>
-                        {solvedProblems.includes(problem._id) ? 'Solved' : 'Unsolved'}
-                      </span>
-                    )}
-                    
-                    <NavLink
-                      to={`/problem/${problem._id}`}
-                      className="px-4 py-2 rounded transition-colors duration-200 flex items-center gap-1"
-                      style={{
-                        color: '#FFA500',
-                        border: '1px solid #FFA500',
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = '#FFA500';
-                        e.currentTarget.style.color = 'black';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = '';
-                        e.currentTarget.style.color = '#FFA500';
-                      }}
-                    >
-                      Solve
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                      </svg>
-                    </NavLink>
+                  <div className="text-sm text-gray-400">
+                    Showing {indexOfFirstProblem + 1} to {Math.min(indexOfLastProblem, sortedProblems.length)} of {sortedProblems.length} problems
                   </div>
                 </div>
-              ))}
-            </div>
+              )}
+            </>
           )}
         </div>
 

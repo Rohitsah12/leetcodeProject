@@ -61,9 +61,9 @@ const createProblem = async (req, res) => {
       description,
       difficulty,
       tags,
-      companies: [],
-      hints: [],
-      constraints: [],
+      companies,
+      hints,    
+      constraints,
       visibleTestCases,
       hiddenTestCases,
       startCode,
@@ -111,6 +111,9 @@ const updateProblem = async (req, res) => {
     startCode,
     referenceSolution 
   } = req.body;
+
+  console.log(title);
+  
 
   try {
     if (!id) {
