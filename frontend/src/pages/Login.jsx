@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -5,7 +6,8 @@ import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, NavLink } from 'react-router-dom';
 import { loginUser } from '../authSlice';
-import { FaGoogle } from 'react-icons/fa';
+import { FaGoogle,  } from 'react-icons/fa';
+import { Eye, EyeOff } from 'lucide-react';
 
 const loginSchema = z.object({
   emailId: z.string().email("Invalid Email"),
@@ -15,8 +17,9 @@ const loginSchema = z.object({
 function Login() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
   
-  // Get both user and college authentication states
+  
   const { 
     isUserAuthenticated, 
     loading, 
@@ -42,6 +45,10 @@ function Login() {
 
   const handleGoogleLogin = () => {
     window.location.href = 'http://localhost:3000/user/google';
+  };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
   };
 
   return (
@@ -100,21 +107,30 @@ function Login() {
               )}
             </div>
 
-            {/* Password */}
+            {/* Password with Toggle */}
             <div className="form-control mt-4">
               <label htmlFor="password" className="label">
                 <span className="label-text text-white">Password</span>
               </label>
-              <input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                autoComplete="current-password"
-                className={`input input-bordered w-full bg-transparent text-white placeholder-gray-400 focus:ring-2 focus:ring-primary transition-all duration-200 ${
-                  errors.password ? 'input-error' : ''
-                }`}
-                {...register('password')}
-              />
+              <div className="relative">
+                <input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  autoComplete="current-password"
+                  className={`input input-bordered w-full bg-transparent text-white placeholder-gray-400 focus:ring-2 focus:ring-primary transition-all duration-200 pr-10 ${
+                    errors.password ? 'input-error' : ''
+                  }`}
+                  {...register('password')}
+                />
+                <button
+                  type="button"
+                  className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 hover:text-white transition-colors"
+                  onClick={togglePasswordVisibility}
+                >
+                  {showPassword ? <EyeOff /> : <Eye />}
+                </button>
+              </div>
               {errors.password && (
                 <span className="text-error text-sm mt-1">{errors.password.message}</span>
               )}

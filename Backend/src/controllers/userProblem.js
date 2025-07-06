@@ -5,15 +5,18 @@ const Submission = require("../models/submission");
 const SolutionVideo = require("../models/solutionVideo")
 
 const createProblem = async (req, res) => {
-  const {
-    title,
-    description,
-    difficulty,
+  const { 
+    title, 
+    description, 
+    difficulty, 
     tags,
-    visibleTestCases,
-    hiddenTestCases,
+    companies,
+    hints,    
+    constraints,
+    visibleTestCases, 
+    hiddenTestCases, 
     startCode,
-    referenceSolution
+    referenceSolution 
   } = req.body;
 
   try {
@@ -75,7 +78,6 @@ const createProblem = async (req, res) => {
   } catch (error) {
     console.error("Error creating problem:", error);
     
-    // Handle axios errors specifically
     if (error.response) {
       console.error("Judge0 API error:", error.response.data);
       return res.status(502).json({
@@ -101,9 +103,9 @@ const updateProblem = async (req, res) => {
     description, 
     difficulty, 
     tags,
-    companies, // Added companies
-    hints,    // Added hints
-    constraints, // Added constraints
+    companies,
+    hints,    
+    constraints,
     visibleTestCases, 
     hiddenTestCases, 
     startCode,
