@@ -66,21 +66,18 @@ const ProblemPage = () => {
   const [isVerticalResizing, setIsVerticalResizing] = useState(false);
   const containerRef = useRef(null);
 
-  // Accordion states
   const [openTags, setOpenTags] = useState(false);
   const [openCompanies, setOpenCompanies] = useState(false);
   const [openHints, setOpenHints] = useState(false);
   const [openDiscussion, setOpenDiscussion] = useState(false);
   const [hintVisibility, setHintVisibility] = useState({});
 
-  // Languages for dropdown
   const languages = [
     { id: 'c++', label: 'C++' },
     { id: 'java', label: 'Java' },
     { id: 'javascript', label: 'JavaScript' }
   ];
 
-  // Fetch problems from backend
   useEffect(() => {
     const fetchProblems = async () => {
       try {
@@ -88,7 +85,6 @@ const ProblemPage = () => {
         const response = await axiosClient.get('/problem/getAllProblem');
         setProblems(response.data);
         
-        // Set current problem based on URL param
         if (response.data.length > 0) {
           const problem = problemId 
             ? response.data.find(p => p._id === problemId) 
@@ -108,7 +104,6 @@ const ProblemPage = () => {
     fetchProblems();
   }, [problemId]);
 
-  // Fetch single problem when ID changes
   useEffect(() => {
     const fetchProblem = async () => {
       try {
@@ -148,7 +143,7 @@ const ProblemPage = () => {
     if (problemId) fetchProblem();
   }, [problemId, selectedLanguage]);
 
-  // Filter problems based on search term
+  
   const filteredProblems = useMemo(() => {
     if (!searchTerm.trim()) return problems;
     return problems.filter(problem => 
@@ -156,7 +151,6 @@ const ProblemPage = () => {
     );
   }, [problems, searchTerm]);
 
-  // Handle resizing of panels
   useEffect(() => {
     const handleMouseMove = (e) => {
       if (isResizing) {
@@ -198,7 +192,7 @@ const ProblemPage = () => {
     };
   }, [isResizing, isVerticalResizing]);
 
-  // Toggle fullscreen
+ 
   const toggleFullscreen = () => {
     const elem = fullscreenRef.current;
     if (!isFullscreen) {
@@ -212,7 +206,7 @@ const ProblemPage = () => {
     }
   };
 
-  // Clipboard copy function
+
   const handleShare = async () => {
     try {
       await navigator.clipboard.writeText(window.location.href);
@@ -674,12 +668,14 @@ const ProblemPage = () => {
 
   const currentIndex = getCurrentProblemIndex();
   if (loading && !currentProblem) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <span className="loading loading-spinner loading-lg"></span>
-      </div>
-    );
-  }
+  return (
+    <div className="min-h-screen bg-black flex items-center justify-center">
+      <div
+        className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-orange-500"
+      ></div>
+    </div>
+  );
+}
 
   const leftTabs = [
     { id: 'description', label: 'Description', icon: <Code className="w-4 h-4" /> },
