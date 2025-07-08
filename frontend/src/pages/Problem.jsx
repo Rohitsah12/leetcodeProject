@@ -6,13 +6,16 @@ import {
   Clock, SparkleIcon, ChevronDown, ChevronUp, MessageSquare, 
   MessagesSquare, Tag, Building, Plus, Copy, Settings, Monitor,
   WrapText,
-  CloudUpload
+  CloudUpload,
+  User,
+  UserCircle
 } from 'lucide-react';
 import axiosClient from '../utils/axiosClient';
 import Editorial from '../components/Problem/Editorial';
 import SubmissionHistory from '../components/Problem/SubmissionHistory';
 import ChatAI from '../components/Problem/ChatAI';
 import Editor from '@monaco-editor/react';
+import { useDispatch, useSelector } from 'react-redux';
 
 const ProblemPage = () => {
   const { problemId } = useParams();
@@ -27,6 +30,7 @@ const ProblemPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeLeftTab, setActiveLeftTab] = useState('description');
+
   
   // Code editor state
   const [selectedLanguage, setSelectedLanguage] = useState('c++');
@@ -71,6 +75,8 @@ const ProblemPage = () => {
   const [openHints, setOpenHints] = useState(false);
   const [openDiscussion, setOpenDiscussion] = useState(false);
   const [hintVisibility, setHintVisibility] = useState({});
+
+  const {user}=useSelector((state)=>state.auth);
 
   const languages = [
     { id: 'c++', label: 'C++' },
@@ -393,7 +399,6 @@ const ProblemPage = () => {
     }
   };
 
-  // Toggle editor option
   const toggleEditorOption = (option, value) => {
     setEditorOptions(prev => ({
       ...prev,
@@ -401,7 +406,6 @@ const ProblemPage = () => {
     }));
   };
 
-  // Test Cases Panel Component
   const TestCasesPanel = () => {
     const [newTestCase, setNewTestCase] = useState({ input: '', expected: '' });
   
@@ -692,7 +696,6 @@ const ProblemPage = () => {
         backgroundPosition: 'center',
       }}>
       
-      {/* Problem List Modal */}
       {showProblemList && (
         <div className="fixed inset-0 z-50 flex">
           <div 
@@ -776,7 +779,7 @@ const ProblemPage = () => {
             to="/"
             className="text-white text-lg font-bold px-3 py-1 border-r border-gray-700 hover:text-orange-400"
           >
-            DC
+            IC
           </NavLink>
           <div className="flex items-center gap-2 text-gray-300">
             <span 
@@ -854,18 +857,23 @@ const ProblemPage = () => {
         <div className="flex items-center gap-3">
           <button
             onClick={toggleFullscreen}
-            className="hover:text-white text-gray-300 transition"
+            className="hover:text-[orange] cursor-pointer"
             title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
           >
             {isFullscreen ? <Minimize2 /> : <Fullscreen />}
           </button>
           <button
             onClick={handleShare}
-            className="hover:text-white text-gray-300 transition"
+            className="hover:text-[orange] transition cursor-pointer"
             title="Copy Link"
           >
             {copied ? <Check className="text-green-400" /> : <Share2 />}
           </button>
+
+          <NavLink to={`/myprofile/${user._id}` }
+          title="My Profile">
+            <UserCircle className="w-6 h-6 hover:text-[orange]" />
+          </NavLink>
         </div>
       </nav>
       

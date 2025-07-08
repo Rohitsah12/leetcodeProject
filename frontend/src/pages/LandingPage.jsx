@@ -35,26 +35,7 @@ const LandingPage = () => {
         </div>
       </div>
 
-      {/* SVG Arrow */}
-      <svg
-        className="absolute"
-        width="300"
-        height="150"
-        style={{ top: '33%', left: '50%', transform: 'translateX(-50%)' }}
-      >
-        <defs>
-          <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
-            <polygon points="0 0, 10 3.5, 0 7" fill="#ff6b6b" />
-          </marker>
-        </defs>
-        <path
-          d="M 0 60 C 80 20, 200 100, 280 60"
-          stroke="#ff6b6b"
-          strokeWidth="5"
-          fill="none"
-          markerEnd="url(#arrowhead)"
-        />
-      </svg>
+
     </div>
   );
 };
