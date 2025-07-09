@@ -1,15 +1,6 @@
 import React, { useRef, useState, useEffect, useMemo } from 'react';
 import { NavLink, useNavigate, useParams } from 'react-router-dom';
-import { 
-  ChevronLeft, ChevronRight, Play, Timer, Fullscreen, 
-  Share2, Minimize2, Check, X, Search, Code, Edit, 
-  Clock, SparkleIcon, ChevronDown, ChevronUp, MessageSquare, 
-  MessagesSquare, Tag, Building, Plus, Copy, Settings, Monitor,
-  WrapText,
-  CloudUpload,
-  User,
-  UserCircle,  
-} from 'lucide-react';
+import { ChevronLeft, ChevronRight, Play, Timer, Fullscreen, Share2, Minimize2, Check, X, Search, Code, Edit, Clock, SparkleIcon, ChevronDown, ChevronUp, MessageSquare, MessagesSquare, Tag, Building, Plus, Copy, Settings, Monitor, WrapText, UploadCloud as CloudUpload, User, UserCircle, Pause, RotateCcw } from 'lucide-react';
 import axiosClient from '../utils/axiosClient';
 import Editorial from '../components/Problem/Editorial';
 import SubmissionHistory from '../components/Problem/SubmissionHistory';
@@ -31,6 +22,11 @@ const ProblemPage = () => {
   const [error, setError] = useState(null);
   const [activeLeftTab, setActiveLeftTab] = useState('description');
 
+  // Timer state
+  const [showTimer, setShowTimer] = useState(false);
+  const [timerSeconds, setTimerSeconds] = useState(0);
+  const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const timerIntervalRef = useRef(null);
   
   // Code editor state
   const [selectedLanguage, setSelectedLanguage] = useState('c++');
@@ -83,6 +79,65 @@ const ProblemPage = () => {
     { id: 'java', label: 'Java' },
     { id: 'javascript', label: 'JavaScript' }
   ];
+
+  // Timer functions
+  const formatTime = (seconds) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const remainingSeconds = seconds % 60;
+    
+    if (hours > 0) {
+      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+    }
+    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
+
+  const startTimer = () => {
+    setShowTimer(true);
+    setIsTimerRunning(true);
+  };
+
+  const toggleTimer = () => {
+    setIsTimerRunning(!isTimerRunning);
+  };
+
+  const resetTimer = () => {
+    setTimerSeconds(0);
+    setIsTimerRunning(false);
+  };
+
+  const hideTimer = () => {
+    setShowTimer(false);
+    setIsTimerRunning(false);
+  };
+
+  // Timer effect
+  useEffect(() => {
+    if (isTimerRunning && showTimer) {
+      timerIntervalRef.current = setInterval(() => {
+        setTimerSeconds(prev => prev + 1);
+      }, 1000);
+    } else {
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+      }
+    }
+
+    return () => {
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+      }
+    };
+  }, [isTimerRunning, showTimer]);
+
+  // Clean up timer on unmount
+  useEffect(() => {
+    return () => {
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+      }
+    };
+  }, []);
 
   // Reset problem-specific states when problemId changes
   const resetProblemState = () => {
@@ -820,7 +875,7 @@ const ProblemPage = () => {
           </div>
         </div>
 
-        {/* Center Section - Moved Run/Submit buttons here */}
+        {/* Center Section - Run/Submit buttons and Timer */}
         <div className="flex items-center gap-3">
           <button 
             onClick={handleRun}
@@ -853,7 +908,7 @@ const ProblemPage = () => {
                 : 'bg-orange-600 text-white hover:bg-orange-500'
             }`}
           >
-          <CloudUpload className='w-5 h-5' />
+            <CloudUpload className='w-5 h-5' />
             {isSubmitting ? (
               <>
                 <span className="loading loading-spinner loading-xs"></span>
@@ -864,9 +919,46 @@ const ProblemPage = () => {
             )}
           </button>
           
-          <button className="px-4 py-2 rounded text-sm flex items-center gap-1 bg-gray-800 text-gray-300 hover:bg-gray-700" >
-            <Timer className="w-5 h-5" />
-          </button>
+          {/* Timer Section */}
+          {!showTimer ? (
+            <button 
+              onClick={startTimer}
+              className="px-4 py-2 rounded text-sm flex items-center gap-1 bg-gray-800 text-gray-300 hover:bg-gray-700"
+            >
+              <Timer className="w-5 h-5" />
+             
+            </button>
+          ) : (
+            <div className="flex items-center gap-2 bg-gray-800 rounded px-3 py-2">
+              <button 
+                onClick={hideTimer}
+                className="text-gray-400 hover:text-white"
+                title="Hide Timer"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              
+              <button 
+                onClick={toggleTimer}
+                className="text-gray-400 hover:text-white"
+                title={isTimerRunning ? 'Pause Timer' : 'Start Timer'}
+              >
+                {isTimerRunning ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+              </button>
+              
+              <span className="font-mono text-white text-sm min-w-[60px] text-center">
+                {formatTime(timerSeconds)}
+              </span>
+              
+              <button 
+                onClick={resetTimer}
+                className="text-gray-400 hover:text-white"
+                title="Reset Timer"
+              >
+                <RotateCcw className="w-4 h-4" />
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="flex items-center gap-3">
