@@ -84,6 +84,21 @@ const ProblemPage = () => {
     { id: 'javascript', label: 'JavaScript' }
   ];
 
+  // Reset problem-specific states when problemId changes
+  const resetProblemState = () => {
+    setCustomTestCases([]);
+    setRunResults(null);
+    setSubmitResult(null);
+    setBottomTab('testcases');
+    setCode('// Loading problem...');
+    setHintVisibility({});
+    setOpenTags(false);
+    setOpenCompanies(false);
+    setOpenHints(false);
+    setOpenDiscussion(false);
+    setActiveLeftTab('description');
+  };
+
   useEffect(() => {
     const fetchProblems = async () => {
       try {
@@ -114,6 +129,8 @@ const ProblemPage = () => {
     const fetchProblem = async () => {
       try {
         setLoading(true);
+        resetProblemState(); // Reset state before fetching new problem
+        
         const response = await axiosClient.get(`/problem/ProblemById/${problemId}`);
         
         if (response?.data) {
