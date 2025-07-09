@@ -48,7 +48,7 @@ const ProblemPage = () => {
   const [submitResult, setSubmitResult] = useState(null);
   const [isRunning, setIsRunning] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submissionTime, setSubmissionTime] = useState(0);
+  const [_, setSubmissionTime] = useState(0);
   
   // New state for bottom panel
   const [bottomTab, setBottomTab] = useState('testcases'); // 'testcases' or 'results'
@@ -291,7 +291,7 @@ const ProblemPage = () => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      alert('Failed to copy URL');
+      alert('Failed to copy URL'+err);
     }
   };
 
