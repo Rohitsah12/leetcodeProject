@@ -8,14 +8,14 @@ import {
   WrapText,
   CloudUpload,
   User,
-  UserCircle
+  UserCircle,  
 } from 'lucide-react';
 import axiosClient from '../utils/axiosClient';
 import Editorial from '../components/Problem/Editorial';
 import SubmissionHistory from '../components/Problem/SubmissionHistory';
 import ChatAI from '../components/Problem/ChatAI';
 import Editor from '@monaco-editor/react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 
 const ProblemPage = () => {
   const { problemId } = useParams();
@@ -847,13 +847,11 @@ const ProblemPage = () => {
             )}
           </button>
           
-          <button className="px-4 py-2 rounded text-sm flex items-center gap-1 bg-gray-800 text-gray-300 hover:bg-gray-700">
+          <button className="px-4 py-2 rounded text-sm flex items-center gap-1 bg-gray-800 text-gray-300 hover:bg-gray-700" >
             <Timer className="w-5 h-5" />
-            {submissionTime > 0 ? `${submissionTime}ms` : 'Timer'}
           </button>
         </div>
 
-        {/* Right Section */}
         <div className="flex items-center gap-3">
           <button
             onClick={toggleFullscreen}
@@ -1176,12 +1174,12 @@ const ProblemPage = () => {
                 <div className="flex items-center gap-1 text-xs">
                   <span>Language:</span>
                   <select 
-                    className="bg-gray-800 text-gray-300 px-2 py-1 rounded"
+                    className="bg-dark border text-gray-300 px-2 py-1 rounded"
                     value={selectedLanguage}
                     onChange={(e) => handleLanguageChange(e.target.value)}
                   >
                     {languages.map((lang) => (
-                      <option key={lang.id} value={lang.id}>
+                      <option key={lang.id} value={lang.id} className="bg-black text-white">
                         {lang.label}
                       </option>
                     ))}
@@ -1191,12 +1189,12 @@ const ProblemPage = () => {
                 <div className="flex items-center gap-1 text-xs">
                   <span>Font Size:</span>
                   <select 
-                    className="bg-gray-800 text-gray-300 px-1 py-0.5 rounded"
+                    className="bg-dark border text-gray-300 px-1 py-0.5 rounded"
                     value={editorOptions.fontSize}
                     onChange={(e) => toggleEditorOption('fontSize', parseInt(e.target.value))}
                   >
                     {[12, 14, 16, 18, 20].map(size => (
-                      <option key={size} value={size}>{size}px</option>
+                      <option key={size} value={size} className="bg-black text-white">{size}px</option>
                     ))}
                   </select>
                 </div>
@@ -1206,9 +1204,9 @@ const ProblemPage = () => {
                 <button 
                   className={`p-1 rounded ${
                     editorOptions.minimap.enabled 
-                      ? 'bg-gray-700 text-orange-400' 
+                      ? 'border text-orange-400' 
                       : 'text-gray-500 hover:text-gray-300'
-                  }`}
+                  } cursor-pointer`}
                   onClick={() => toggleEditorOption('minimap', { enabled: !editorOptions.minimap.enabled })}
                   title="Toggle Minimap"
                 >
@@ -1218,9 +1216,9 @@ const ProblemPage = () => {
                 <button 
                   className={`p-1 rounded ${
                     editorOptions.lineNumbers === 'on' 
-                      ? 'bg-gray-700 text-orange-400' 
+                      ? 'border text-orange-400' 
                       : 'text-gray-500 hover:text-gray-300'
-                  }`}
+                  } cursor-pointer`}
                   onClick={() => toggleEditorOption('lineNumbers', editorOptions.lineNumbers === 'on' ? 'off' : 'on')}
                   title="Toggle Line Numbers"
                 >
@@ -1230,9 +1228,9 @@ const ProblemPage = () => {
                 <button 
                   className={`p-1 rounded ${
                     editorOptions.wordWrap === 'on' 
-                      ? 'bg-gray-700 text-orange-400' 
+                      ? 'border text-orange-400' 
                       : 'text-gray-500 hover:text-gray-300'
-                  }`}
+                  } cursor-pointer`}
                   onClick={() => toggleEditorOption('wordWrap', editorOptions.wordWrap === 'on' ? 'off' : 'on')}
                   title="Toggle Word Wrap"
                 >
