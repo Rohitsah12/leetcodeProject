@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@gsap/react": "^2.1.2",
     "@hookform/resolvers": "^5.1.1",
     "@monaco-editor/react": "^4.7.0",
     "@react-oauth/google": "^0.12.2",
@@ -21,7 +22,8 @@
     "axios": "^1.10.0",
     "daisyui": "^5.0.43",
     "date-fns": "^4.1.0",
-    "framer-motion": "^12.19.1",
+    "framer-motion": "^12.23.1",
+    "gsap": "^3.13.0",
     "jose": "^6.0.11",
     "lodash.debounce": "^4.0.8",
     "lucide-react": "^0.519.0",
@@ -31,6 +33,7 @@
     "react-dom": "^19.1.0",
     "react-hook-form": "^7.58.1",
     "react-icons": "^5.5.0",
+    "react-intersection-observer": "^9.16.0",
     "react-markdown": "^10.1.0",
     "react-redux": "^9.2.0",
     "react-router": "^7.6.2",
