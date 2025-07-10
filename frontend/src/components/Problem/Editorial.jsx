@@ -16,6 +16,16 @@ const Editorial = ({ secureUrl, thumbnailUrl, duration: initialDuration = 0 }) =
   const [isBuffering, setIsBuffering] = useState(false);
   const [showVolumeSlider, setShowVolumeSlider] = useState(false);
 
+  // Extract actual URL from thumbnail HTML string
+  const extractThumbnail = (html) => {
+    if (!html) return '';
+    const srcRegex = /src\s*=\s*['"]([^'"]+)['"]/;
+    const match = html.match(srcRegex);
+    return match ? match[1] : '';
+  };
+
+  const actualThumbnailUrl = extractThumbnail(thumbnailUrl);
+
   // Format seconds to MM:SS or HH:MM:SS
   const formatTime = (seconds) => {
     const hrs = Math.floor(seconds / 3600);
@@ -195,7 +205,7 @@ const Editorial = ({ secureUrl, thumbnailUrl, duration: initialDuration = 0 }) =
       <video
         ref={videoRef}
         src={secureUrl}
-        poster={thumbnailUrl}
+        poster={actualThumbnailUrl}
         onClick={togglePlayPause}
         className="w-full aspect-video bg-black cursor-pointer"
         preload="metadata"
@@ -258,9 +268,9 @@ const Editorial = ({ secureUrl, thumbnailUrl, duration: initialDuration = 0 }) =
               aria-label={isPlaying ? "Pause" : "Play"}
             >
               {isPlaying ? (
-                <Pause className="w-5 h-5 text-white" />
+                <Pause className="w-5 h-5 text-black" />
               ) : (
-                <Play className="w-5 h-5 text-white ml-0.5" />
+                <Play className="w-5 h-5 text-black ml-0.5" />
               )}
             </button>
             
@@ -269,7 +279,7 @@ const Editorial = ({ secureUrl, thumbnailUrl, duration: initialDuration = 0 }) =
               className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center hover:bg-opacity-30 transition-all"
               aria-label="Skip back 10 seconds"
             >
-              <SkipBack className="w-4 h-4 text-white" />
+              <SkipBack className="w-4 h-4 text-black" />
             </button>
             
             <button
@@ -277,7 +287,7 @@ const Editorial = ({ secureUrl, thumbnailUrl, duration: initialDuration = 0 }) =
               className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center hover:bg-opacity-30 transition-all"
               aria-label="Skip forward 10 seconds"
             >
-              <SkipForward className="w-4 h-4 text-white" />
+              <SkipForward className="w-4 h-4 text-black" />
             </button>
 
             {/* Volume Controls */}
@@ -292,9 +302,9 @@ const Editorial = ({ secureUrl, thumbnailUrl, duration: initialDuration = 0 }) =
                 aria-label={isMuted ? "Unmute" : "Mute"}
               >
                 {isMuted || volume === 0 ? (
-                  <VolumeX className="w-4 h-4 text-white" />
+                  <VolumeX className="w-4 h-4 text-black" />
                 ) : (
-                  <Volume2 className="w-4 h-4 text-white" />
+                  <Volume2 className="w-4 h-4 text-black" />
                 )}
               </button>
               
@@ -329,7 +339,7 @@ const Editorial = ({ secureUrl, thumbnailUrl, duration: initialDuration = 0 }) =
                 className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center hover:bg-opacity-30 transition-all"
                 aria-label="Settings"
               >
-                <Settings className="w-4 h-4 text-white" />
+                <Settings className="w-4 h-4 text-black" />
               </button>
               
               {showSettings && (
@@ -356,7 +366,7 @@ const Editorial = ({ secureUrl, thumbnailUrl, duration: initialDuration = 0 }) =
               className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center hover:bg-opacity-30 transition-all"
               aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
             >
-              <Maximize className="w-4 h-4 text-white" />
+              <Maximize className="w-4 h-4 text-black" />
             </button>
           </div>
         </div>
