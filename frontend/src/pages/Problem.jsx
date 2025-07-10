@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect, useMemo } from 'react';
 import { NavLink, useNavigate, useParams } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Play, Timer, Fullscreen, Share2, Minimize2, Check, X, Search, Code, Edit, Clock, SparkleIcon, ChevronDown, ChevronUp, MessageSquare, MessagesSquare, Tag, Building, Plus, Copy, Settings, Monitor, WrapText, UploadCloud as CloudUpload, User, UserCircle, Pause, RotateCcw } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Play, Timer, Fullscreen, Share2, Minimize2, Check, X, Search, Code, Edit, Clock, SparkleIcon, ChevronDown, ChevronUp, MessageSquare, MessagesSquare, Tag, Building, Plus, Copy, Settings, Monitor, WrapText, UploadCloud as CloudUpload, User, UserCircle, Pause, RotateCcw, Sparkles } from 'lucide-react';
 import axiosClient from '../utils/axiosClient';
 import Editorial from '../components/Problem/Editorial';
 import SubmissionHistory from '../components/Problem/SubmissionHistory';
@@ -757,7 +757,7 @@ const ProblemPage = () => {
     { id: 'description', label: 'Description', icon: <Code className="w-4 h-4" /> },
     { id: 'editorial', label: 'Editorial', icon: <Edit className="w-4 h-4" /> },
     { id: 'submissions', label: 'Submissions', icon: <Clock className="w-4 h-4" /> },
-    { id: 'chatAI', label: 'AI Companion', icon: <SparkleIcon className="w-4 h-4" /> },
+    { id: 'chatAI', label: 'AI Assistant', icon: <Sparkles className="w-4 h-4" /> },
   ];
 
   return (
