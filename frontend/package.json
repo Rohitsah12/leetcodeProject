@@ -14,6 +14,8 @@
     "@hookform/resolvers": "^5.1.1",
     "@monaco-editor/react": "^4.7.0",
     "@react-oauth/google": "^0.12.2",
+    "@react-three/drei": "^10.5.0",
+    "@react-three/fiber": "^9.2.0",
     "@reduxjs/toolkit": "^2.8.2",
     "@tailwindcss/vite": "^4.1.10",
     "@uiw/react-md-editor": "^4.0.7",
@@ -26,6 +28,7 @@
     "gsap": "^3.13.0",
     "jose": "^6.0.11",
     "lodash.debounce": "^4.0.8",
+    "lottie-react": "^2.4.1",
     "lucide-react": "^0.519.0",
     "react": "^19.1.0",
     "react-big-calendar": "^1.19.4",
@@ -40,6 +43,7 @@
     "react-router-dom": "^7.6.2",
     "react-tabs": "^6.1.0",
     "redux": "^5.0.1",
+    "three": "^0.178.0",
     "zod": "^3.25.67"
   },
   "devDependencies": {
