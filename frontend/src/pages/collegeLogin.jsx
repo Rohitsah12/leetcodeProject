@@ -1,29 +1,31 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, NavLink } from 'react-router-dom';
-import { collegeLogin } from '../authSlice';
-import { FaGoogle, FaEye, FaEyeSlash } from 'react-icons/fa';
+import { collegeLogin, resetAuthError } from '../authSlice';
+import { FaGoogle, FaExclamationTriangle, FaCheckCircle, FaCode } from 'react-icons/fa';
+import { Eye, EyeOff, AlertCircle, X } from 'lucide-react';
 
 const loginSchema = z.object({
-  emailId: z.string().email("Invalid Email"),
-  password: z.string().min(8, "Password is too weak"),
+  emailId: z.string().email("Invalid email address"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
 });
 
-function Collegelogin() {
+function CollegeLogin() {
+  const [showPassword, setShowPassword] = useState(false);
+  const [notification, setNotification] = useState(null);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const [showPassword, setShowPassword] = useState(false);
-  
-  // Get both user and college authentication states
-  const { 
-    isCollegeAuthenticated, 
-    loading, 
-    error 
-  } = useSelector((state) => state.auth);
+  const { isCollegeAuthenticated, loading, error } = useSelector(
+    (state) => state.auth
+  );
+
+  // Reset auth errors when component mounts
+  useEffect(() => {
+    dispatch(resetAuthError());
+  }, [dispatch]);
 
   const {
     register,
@@ -31,63 +33,250 @@ function Collegelogin() {
     formState: { errors },
   } = useForm({ resolver: zodResolver(loginSchema) });
 
-  // Navigate if either user or college is authenticated
   useEffect(() => {
-    if (isCollegeAuthenticated ) {
+    if (isCollegeAuthenticated) {
       navigate('/college');
     }
   }, [isCollegeAuthenticated, navigate]);
 
-  const onSubmit = (data) => {
-    dispatch(collegeLogin(data));
+  // Handle different error types
+  const getErrorMessage = (error) => {
+    if (!error) return null;
+    
+    const errorStr = typeof error === 'string' ? error : error.message || JSON.stringify(error);
+    
+    if (errorStr.toLowerCase().includes('invalid credentials') || 
+        errorStr.toLowerCase().includes('incorrect password')) {
+      return {
+        type: 'error',
+        title: 'Invalid Credentials',
+        message: 'The email or password you entered is incorrect. Please try again.',
+        action: 'retry'
+      };
+    }
+    if (errorStr.toLowerCase().includes('college not found') || 
+        errorStr.toLowerCase().includes('email not found')) {
+      return {
+        type: 'error',
+        title: 'Account Not Found',
+        message: 'No college account found with this email. Please sign up instead.',
+        action: 'signup'
+      };
+    }
+    if (errorStr.toLowerCase().includes('network') || errorStr.toLowerCase().includes('connection')) {
+      return {
+        type: 'error',
+        title: 'Connection Error',
+        message: 'Please check your internet connection and try again.',
+        action: 'retry'
+      };
+    }
+    if (errorStr.toLowerCase().includes('validation') || errorStr.toLowerCase().includes('invalid')) {
+      return {
+        type: 'error',
+        title: 'Invalid Information',
+        message: 'Please check your information and try again.',
+        action: 'retry'
+      };
+    }
+    if (errorStr.includes('401')) {
+      return {
+        type: 'error',
+        title: 'Session Expired',
+        message: 'Your session has expired. Please log in again.',
+        action: 'retry'
+      };
+    }
+    
+    return {
+      type: 'error',
+      title: 'Login Failed',
+      message: errorStr || 'An unexpected error occurred. Please try again.',
+      action: 'retry'
+    };
   };
+
+  const onSubmit = async (data) => {
+    setNotification(null);
+    dispatch(resetAuthError());
+    
+    try {
+      const result = await dispatch(collegeLogin(data));
+      if (result.type === 'auth/collegeLogin/fulfilled') {
+        setNotification({
+          type: 'success',
+          title: 'Login Successful!',
+          message: 'Welcome back to IndieCode! Redirecting to your college dashboard...',
+          action: null
+        });
+      }
+    } catch (err) {
+      console.error('Login error:', err);
+    }
+  };
+
+  const dismissNotification = () => {
+    setNotification(null);
+    dispatch(resetAuthError());
+  };
+
+  const handleRetry = () => {
+    setNotification(null);
+    dispatch(resetAuthError());
+  };
+
+  const handleSignupRedirect = () => {
+    dismissNotification();
+    navigate("/collegeSignUp");
+  };
+
+  const handleCoderLoginRedirect = () => {
+    dismissNotification();
+    navigate("/login");
+  };
+
+  const errorInfo = error ? getErrorMessage(error) : null;
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center p-4 bg-black"
+      className="min-h-screen flex items-center justify-center p-4 bg-black text-white relative"
       style={{
         backgroundImage: `url('https://res.cloudinary.com/dltqzdtfh/image/upload/v1750446385/gridbg_uxjjws.png')`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
+        backgroundSize: "cover",
+        backgroundPosition: "center",
       }}
     >
+      {/* Notification Toast */}
+      {(notification || errorInfo) && (
+        <div className="fixed top-4 right-4 z-50 max-w-md">
+          <div className={`p-4 rounded-lg shadow-lg border backdrop-blur-md ${
+            (notification?.type || errorInfo?.type) === 'success' 
+              ? 'bg-green-900/90 border-green-500/50 text-green-100' 
+              : (notification?.type || errorInfo?.type) === 'warning'
+              ? 'bg-yellow-900/90 border-yellow-500/50 text-yellow-100'
+              : 'bg-red-900/90 border-red-500/50 text-red-100'
+          }`}>
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0">
+                {(notification?.type || errorInfo?.type) === 'success' ? (
+                  <FaCheckCircle className="text-green-400 text-xl" />
+                ) : (notification?.type || errorInfo?.type) === 'warning' ? (
+                  <FaExclamationTriangle className="text-yellow-400 text-xl" />
+                ) : (
+                  <AlertCircle className="text-red-400 text-xl" />
+                )}
+              </div>
+              <div className="flex-1">
+                <h4 className="font-semibold text-sm">
+                  {notification?.title || errorInfo?.title}
+                </h4>
+                <p className="text-sm mt-1 opacity-90">
+                  {notification?.message || errorInfo?.message}
+                </p>
+                {(notification?.action || errorInfo?.action) && (
+                  <div className="mt-3 flex gap-2">
+                    {(notification?.action || errorInfo?.action) === 'signup' && (
+                      <button
+                        onClick={handleSignupRedirect}
+                        className="text-xs px-3 py-1 bg-white/20 hover:bg-white/30 rounded transition-colors"
+                      >
+                        Create Account
+                      </button>
+                    )}
+                    {(notification?.action || errorInfo?.action) === 'retry' && (
+                      <button
+                        onClick={handleRetry}
+                        className="text-xs px-3 py-1 bg-white/20 hover:bg-white/30 rounded transition-colors"
+                      >
+                        Try Again
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+              <button
+                onClick={dismissNotification}
+                className="flex-shrink-0 text-white/60 hover:text-white transition-colors"
+              >
+                <X size={18} />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="w-full max-w-md bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl shadow-[0_0_30px_rgba(255,255,255,0.1)] p-8 relative overflow-hidden">
         <div
           className="absolute inset-0 rounded-2xl border border-white/10 pointer-events-none"
           style={{
-            background:'linear-gradient(135deg, rgba(0, 0, 0, 0.19), rgba(133, 133, 133, 0.19), rgba(222, 222, 222, 0.19))',
+            background:
+              "linear-gradient(135deg, rgba(0, 0, 0, 0.19), rgba(133, 133, 133, 0.19), rgba(222, 222, 222, 0.19))",
           }}
         ></div>
 
         <div className="relative z-10">
-          <h2 className="text-4xl font-bold text-center text-white mb-6 tracking-wide">DooCode</h2>
-          
+          {/* Logo */}
+          <div className="relative mb-8">
+            <NavLink
+              to="/"
+              className="group flex items-center space-x-2 hover:scale-105 transition-all duration-300 ease-out"
+            >
+              <div className="relative">
+                <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center shadow-lg group-hover:shadow-orange-500/25 transition-all duration-300">
+                  <div className="text-white font-bold text-lg">
+                    <span className="block transform group-hover:rotate-12 transition-transform duration-300">
+                      &lt;/&gt;
+                    </span>
+                  </div>
+                </div>
+                <div className="absolute inset-0 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg blur opacity-30 group-hover:opacity-50 transition-opacity duration-300"></div>
+              </div>
 
-          <form onSubmit={handleSubmit(onSubmit)}>
-            {/* Email */}
-            <div className="form-control mt-2">
-              <label htmlFor="emailId" className="label">
-                <span className="label-text text-white">Email</span>
+              <div className="flex items-center">
+                <span className="text-2xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent group-hover:from-orange-200 group-hover:to-white transition-all duration-300">
+                  Indie
+                </span>
+                <span className="text-2xl font-bold bg-gradient-to-r from-orange-500 to-orange-400 bg-clip-text text-transparent group-hover:from-orange-400 group-hover:to-orange-300 transition-all duration-300">
+                  Code
+                </span>
+              </div>
+
+              <div className="absolute -bottom-1 left-12 h-0.5 w-0 bg-gradient-to-r from-orange-500 to-orange-400 group-hover:w-[120px] transition-all duration-300 ease-out"></div>
+            </NavLink>
+          </div>
+
+          <h2 className="text-2xl font-bold text-center text-orange-400 mb-6">
+            College Login
+          </h2>
+
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            {/* College Email */}
+            <div className="space-y-2">
+              <label htmlFor="emailId" className="block text-sm font-medium text-white">
+                College Email
               </label>
               <input
                 id="emailId"
                 type="email"
-                placeholder="john@example.com"
+                placeholder="admin@college.edu"
                 autoComplete="email"
-                className={`input input-bordered w-full bg-transparent text-white placeholder-gray-400 focus:ring-2 focus:ring-primary transition-all duration-200 ${
-                  errors.emailId ? 'input-error' : ''
+                className={`w-full px-4 py-3 bg-white/5 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 ${
+                  errors.emailId ? "border-red-500 focus:ring-red-500" : "border-white/10"
                 }`}
-                {...register('emailId')}
+                {...register("emailId")}
               />
               {errors.emailId && (
-                <span className="text-error text-sm mt-1">{errors.emailId.message}</span>
+                <div className="flex items-center gap-2 text-red-400 text-sm">
+                  <AlertCircle size={16} />
+                  <span>{errors.emailId.message}</span>
+                </div>
               )}
             </div>
 
-            {/* Password with toggle */}
-            <div className="form-control mt-4 relative">
-              <label htmlFor="password" className="label">
-                <span className="label-text text-white">Password</span>
+            {/* Password */}
+            <div className="space-y-2">
+              <label htmlFor="password" className="block text-sm font-medium text-white">
+                Password
               </label>
               <div className="relative">
                 <input
@@ -95,57 +284,73 @@ function Collegelogin() {
                   type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
                   autoComplete="current-password"
-                  className={`input input-bordered w-full bg-transparent text-white placeholder-gray-400 focus:ring-2 focus:ring-primary transition-all duration-200 pr-10 ${
-                    errors.password ? 'input-error' : ''
+                  className={`w-full px-4 py-3 pr-12 bg-white/5 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 ${
+                    errors.password ? "border-red-500 focus:ring-red-500" : "border-white/10"
                   }`}
-                  {...register('password')}
+                  {...register("password")}
                 />
                 <button
                   type="button"
-                  className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 hover:text-white transition-colors"
+                  className="absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
                   onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
                 >
-                  {showPassword ? (
-                    <FaEyeSlash className="h-5 w-5" />
-                  ) : (
-                    <FaEye className="h-5 w-5" />
-                  )}
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
               </div>
               {errors.password && (
-                <span className="text-error text-sm mt-1">{errors.password.message}</span>
+                <div className="flex items-center gap-2 text-red-400 text-sm">
+                  <AlertCircle size={16} />
+                  <span>{errors.password.message}</span>
+                </div>
               )}
             </div>
 
-            {/* Error from Backend */}
-            {error && (
-              <div className="text-error text-sm text-center mt-4">
-                {typeof error === 'string' ? error : 'Collegelogin failed. Please try again.'}
-              </div>
-            )}
-
             {/* Submit Button */}
-            <div className="form-control mt-6 flex justify-center">
-              <button
-                type="submit"
-                className={`btn text-black bg-white ${
-                  loading ? 'loading' : ''
-                }`}
-                disabled={loading}
-              >
-                {loading ? 'Logging in...' : 'Login'}
-              </button>
-            </div>
+            <button
+              type="submit"
+              disabled={loading}
+              className={`w-full py-3 px-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-medium rounded-lg shadow-lg hover:from-orange-600 hover:to-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-black transition-all duration-200 ${
+                loading ? "opacity-50 cursor-not-allowed" : "hover:shadow-orange-500/25"
+              }`}
+            >
+              {loading ? (
+                <div className="flex items-center justify-center gap-2">
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  <span>Logging in...</span>
+                </div>
+              ) : (
+                "Sign In"
+              )}
+            </button>
           </form>
 
-          {/* Navigation to Signup */}
-          <div className="text-center mt-6">
-            <span className="text-sm text-white">
-              Don't have an account?{' '}
-              <NavLink to="/collegeSignup" className="link link-primary">
-                Sign Up
-              </NavLink>
-            </span>
+          {/* Navigation Options */}
+          <div className="mt-6 space-y-3">
+            {/* Sign Up Link */}
+            <div className="text-center">
+              <span className="text-sm text-white/60">
+                Don't have an account?{" "}
+                <NavLink 
+                  to="/collegeSignUp" 
+                  className="text-orange-400 hover:text-orange-300 transition-colors font-medium"
+                  onClick={() => dispatch(resetAuthError())}
+                >
+                  College Sign Up
+                </NavLink>
+              </span>
+            </div>
+            
+            {/* Fluent Coder Login Option */}
+            <div className="text-center">
+              <button
+                onClick={handleCoderLoginRedirect}
+                className="flex items-center justify-center gap-2 text-sm text-orange-400 hover:text-orange-300 transition-colors font-medium"
+              >
+                <FaCode className="text-orange-400" />
+                <span>Are you a fluent coder? Login here</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -153,4 +358,4 @@ function Collegelogin() {
   );
 }
 
-export default Collegelogin;
+export default CollegeLogin;

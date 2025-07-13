@@ -9,7 +9,12 @@ export const registerUser = createAsyncThunk(
       const response = await axiosClient.post('/user/register', userData);
       return response.data.user;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.error || error.message || 'Registration failed');
+      return rejectWithValue(
+        error.response?.data?.error || 
+        error.response?.data?.message || 
+        error.message || 
+        'Registration failed. Please try again.'
+      );
     }
   }
 );
@@ -21,7 +26,12 @@ export const loginUser = createAsyncThunk(
       const response = await axiosClient.post('/user/login', credentials);
       return response.data.user;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.error || error.message || 'Login failed');
+      return rejectWithValue(
+        error.response?.data?.error || 
+        error.response?.data?.message || 
+        error.message || 
+        'Login failed. Please try again.'
+      );
     }
   }
 );
@@ -33,7 +43,12 @@ export const checkAuth = createAsyncThunk(
       const { data } = await axiosClient.get('/user/check');
       return data.user;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.error || error.message || 'Auth check failed');
+      return rejectWithValue(
+        error.response?.data?.error || 
+        error.response?.data?.message || 
+        error.message || 
+        'Authentication check failed'
+      );
     }
   }
 );
@@ -42,10 +57,15 @@ export const googleLogin = createAsyncThunk(
   'auth/googleLogin',
   async (_, { rejectWithValue }) => {
     try {
-      // This is intentionally empty - the actual login happens via redirect
+      // This is intentionally empty - actual login happens via redirect
       return null;
     } catch (error) {
-      return rejectWithValue('Google login failed');
+      return rejectWithValue(
+        error.response?.data?.error || 
+        error.response?.data?.message || 
+        error.message || 
+        'Google login failed'
+      );
     }
   }
 );
@@ -57,7 +77,12 @@ export const logoutUser = createAsyncThunk(
       await axiosClient.post('/user/logout');
       return null;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.error || error.message || 'Logout failed');
+      return rejectWithValue(
+        error.response?.data?.error || 
+        error.response?.data?.message || 
+        error.message || 
+        'Logout failed'
+      );
     }
   }
 );
@@ -70,7 +95,12 @@ export const collegeRegister = createAsyncThunk(
       const response = await axiosClient.post('/user/collegeAuth/register', collegeData);
       return response.data.college;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.error || error.message || 'College registration failed');
+      return rejectWithValue(
+        error.response?.data?.error || 
+        error.response?.data?.message || 
+        error.message || 
+        'College registration failed'
+      );
     }
   }
 );
@@ -82,7 +112,12 @@ export const collegeLogin = createAsyncThunk(
       const response = await axiosClient.post('/user/collegeAuth/login', credentials);
       return response.data.college;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.error || error.message || 'College login failed');
+      return rejectWithValue(
+        error.response?.data?.error || 
+        error.response?.data?.message || 
+        error.message || 
+        'College login failed'
+      );
     }
   }
 );
@@ -94,7 +129,12 @@ export const checkCollegeAuth = createAsyncThunk(
       const response = await axiosClient.get('/user/collegeAuth/checkAuth');
       return response.data.college;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.error || error.message || 'College auth check failed');
+      return rejectWithValue(
+        error.response?.data?.error || 
+        error.response?.data?.message || 
+        error.message || 
+        'College authentication check failed'
+      );
     }
   }
 );
@@ -106,7 +146,12 @@ export const logoutCollege = createAsyncThunk(
       await axiosClient.post('/user/collegeAuth/logout');
       return null;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.error || error.message || 'College logout failed');
+      return rejectWithValue(
+        error.response?.data?.error || 
+        error.response?.data?.message || 
+        error.message || 
+        'College logout failed'
+      );
     }
   }
 );
@@ -125,7 +170,7 @@ const authSlice = createSlice({
     collegeCheckComplete: false
   },
   reducers: {
-    clearAuthError: (state) => {
+    resetAuthError: (state) => {
       state.error = null;
     },
     resetAuthState: (state) => {
@@ -151,6 +196,7 @@ const authSlice = createSlice({
         state.user = action.payload;
         state.college = null;
         state.isCollegeAuthenticated = false;
+        state.error = null;
       })
       .addCase(registerUser.rejected, (state, action) => {
         state.loading = false;
@@ -170,6 +216,7 @@ const authSlice = createSlice({
         state.user = action.payload;
         state.college = null;
         state.isCollegeAuthenticated = false;
+        state.error = null;
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
@@ -207,6 +254,7 @@ const authSlice = createSlice({
           state.college = null;
           state.isCollegeAuthenticated = false;
         }
+        state.error = null;
       })
       .addCase(checkAuth.rejected, (state, action) => {
         state.loading = false;
@@ -225,6 +273,7 @@ const authSlice = createSlice({
         state.loading = false;
         state.user = null;
         state.isUserAuthenticated = false;
+        state.error = null;
       })
       .addCase(logoutUser.rejected, (state, action) => {
         state.loading = false;
@@ -242,6 +291,7 @@ const authSlice = createSlice({
         state.college = action.payload;
         state.user = null;
         state.isUserAuthenticated = false;
+        state.error = null;
       })
       .addCase(collegeRegister.rejected, (state, action) => {
         state.loading = false;
@@ -261,6 +311,7 @@ const authSlice = createSlice({
         state.college = action.payload;
         state.user = null;
         state.isUserAuthenticated = false;
+        state.error = null;
       })
       .addCase(collegeLogin.rejected, (state, action) => {
         state.loading = false;
@@ -285,6 +336,7 @@ const authSlice = createSlice({
           state.user = null;
           state.isUserAuthenticated = false;
         }
+        state.error = null;
       })
       .addCase(checkCollegeAuth.rejected, (state, action) => {
         state.loading = false;
@@ -303,6 +355,7 @@ const authSlice = createSlice({
         state.loading = false;
         state.college = null;
         state.isCollegeAuthenticated = false;
+        state.error = null;
       })
       .addCase(logoutCollege.rejected, (state, action) => {
         state.loading = false;
@@ -311,5 +364,5 @@ const authSlice = createSlice({
   }
 });
 
-export const { clearAuthError, resetAuthState } = authSlice.actions;
+export const { resetAuthError, resetAuthState } = authSlice.actions;
 export default authSlice.reducer;
