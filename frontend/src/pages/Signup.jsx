@@ -462,9 +462,7 @@ function Signup() {
             </button>
           </form>
 
-          {/* Navigation Options */}
           <div className="mt-6 space-y-3">
-            {/* Existing Account */}
             <div className="text-center">
               <span className="text-sm text-white/60">
                 Already have an account?{" "}
