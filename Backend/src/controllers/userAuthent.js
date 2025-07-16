@@ -7,7 +7,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const collegeValidate = require('../utils/collegeValidator');
 
-const register = async (req, res) => {
+const    register = async (req, res) => {
   try {
     validate(req.body);
     const { firstName, emailId, password } = req.body;
@@ -32,7 +32,7 @@ const register = async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      maxAge: 7 * 24 * 60 * 60 * 1000, 
     });
     
     res.status(201).json({
