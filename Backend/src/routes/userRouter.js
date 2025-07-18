@@ -31,21 +31,7 @@ userRouter.get('/profile/:id', async (req, res) => {
   }
 });
 
-// ✅ Update profile image (Cloudinary URL)
-userRouter.put('/profile/image', async (req, res) => {
-  try {
-    const { profileImage } = req.body;
-    if (!profileImage) return res.status(400).json({ message: 'Image URL is required' });
 
-    await User.findByIdAndUpdate(req.userId, { profileImage });
-    res.json({ message: 'Profile image updated' });
-  } catch (err) {
-    console.error('Error updating profile image:', err);
-    res.status(500).json({ message: 'Error updating image' });
-  }
-});
-
-//
 // Update your heatmap route to use UTC dates for consistent comparison
 userRouter.get('/heatmap', userMiddleware, async (req, res) => {
   try {

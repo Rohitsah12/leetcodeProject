@@ -32,7 +32,7 @@ const LandingPage = () => {
               <ArrowRight size={20} />
             </button>
           </NavLink>
-        </div>
+        </div>      
       </div>
 
 
