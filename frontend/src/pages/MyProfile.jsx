@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import axiosClient from '../utils/axiosClient';
-import { Flame, UserCircle, Calendar, Trophy, CheckCircle, XCircle, Clock, Star } from 'lucide-react';
-import Navbar from '../components/Landing/navbar';
+import { Flame, UserCircle, Calendar, CheckCircle, XCircle, Clock, Star } from 'lucide-react';
+import Navbar from '../components/Landing/Navbar';
 import CalendarHeatmap from 'react-calendar-heatmap';
 import 'react-calendar-heatmap/dist/styles.css';
 import { useParams } from 'react-router';
