@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import axiosClient from '../utils/axiosClient';
-import { Flame, UserCircle, Calendar, CheckCircle, XCircle, Clock, Star } from 'lucide-react';
+import { Flame, UserCircle, Calendar, CheckCircle, XCircle, Clock, Star, Trophy, Target, Zap, Award, TrendingUp, BarChart3 } from 'lucide-react';
 import Navbar from '../components/Landing/Navbar';
 import CalendarHeatmap from 'react-calendar-heatmap';
 import 'react-calendar-heatmap/dist/styles.css';
@@ -165,6 +165,28 @@ const MyProfile = () => {
     return problemStats.easy * 2 + problemStats.medium * 3 + problemStats.hard * 5;
   }, [problemStats]);
 
+  // Calculate percentages for difficulty distribution
+  const difficultyPercentages = useMemo(() => {
+    if (problemStats.total === 0) return { easy: 0, medium: 0, hard: 0 };
+    return {
+      easy: Math.round((problemStats.easy / problemStats.total) * 100),
+      medium: Math.round((problemStats.medium / problemStats.total) * 100),
+      hard: Math.round((problemStats.hard / problemStats.total) * 100)
+    };
+  }, [problemStats]);
+
+  // Get user rank based on total problems solved
+  const getUserRank = (totalSolved) => {
+    if (totalSolved >= 500) return { rank: 'Master', color: 'text-purple-400', icon: Trophy };
+    if (totalSolved >= 200) return { rank: 'Expert', color: 'text-blue-400', icon: Award };
+    if (totalSolved >= 100) return { rank: 'Advanced', color: 'text-green-400', icon: Target };
+    if (totalSolved >= 50) return { rank: 'Intermediate', color: 'text-yellow-400', icon: Zap };
+    return { rank: 'Beginner', color: 'text-orange-400', icon: Star };
+  };
+
+  const userRank = getUserRank(problemStats.total);
+  const RankIcon = userRank.icon;
+
   if (loading) {
     return (
       <div className="min-h-screen bg-black flex flex-col">
@@ -203,32 +225,74 @@ const MyProfile = () => {
                 )}
               </div>
 
-              <div className="text-center md:text-left">
+              <div className="text-center md:text-left flex-1">
                 <h1 className="text-4xl font-bold text-orange-500 mb-2">
                   {profile.firstName} {profile.lastName}
                 </h1>
-                <p className="text-gray-300 mb-6">{profile.emailId}</p>
+                <p className="text-gray-300 mb-2">{profile.emailId}</p>
+                
+                {/* User Rank */}
+                <div className="flex items-center justify-center md:justify-start mb-6">
+                  <RankIcon className={`mr-2 ${userRank.color}`} size={20} />
+                  <span className={`text-lg font-semibold ${userRank.color}`}>
+                    {userRank.rank}
+                  </span>
+                </div>
 
-                <div className="flex flex-wrap justify-center md:justify-start gap-6">
-                  <div className="bg-opacity-80 backdrop-blur-lg rounded-2xl p-4 min-w-[200px] border border-orange-500">
+                <div className="flex flex-wrap justify-center md:justify-start gap-4">
+                  <div className="bg-opacity-80 backdrop-blur-lg rounded-2xl p-4 min-w-[180px] border border-orange-500">
                     <div className="text-gray-300 mb-1 flex items-center justify-center">
-                      <Flame className="mr-2 text-orange-500" size={20} /> Current Streak
+                      <Flame className="mr-2 text-orange-500" size={18} /> Current Streak
                     </div>
                     <div className="flex items-center justify-center">
-                      <div className="text-2xl font-bold text-orange-500">{profile.streak?.count|| 0} days</div>
+                      <div className="text-2xl font-bold text-orange-500">{profile.streak?.count || 0} days</div>
                     </div>
                     <div className="text-xs text-gray-400 mt-2">
                       Last solved: {profile.streak?.lastStreakDate || 'New User'}
                     </div>
                   </div>
 
-                  <div className="bg-opacity-80 backdrop-blur-lg rounded-2xl p-4 min-w-[200px] border border-orange-500">
+                  <div className="bg-opacity-80 backdrop-blur-lg rounded-2xl p-4 min-w-[180px] border border-orange-500">
                     <div className="text-gray-300 mb-1 flex items-center justify-center">
-                      <Star className="mr-2 text-orange-500" size={20} /> Coding Score
+                      <Star className="mr-2 text-orange-500" size={18} /> Coding Score
                     </div>
                     <div className="flex items-center justify-center">
                       <div className="text-2xl font-bold text-orange-500">{codingScore}</div>
                     </div>
+                    <div className="text-xs text-gray-400 mt-2">
+                      Based on problem difficulty
+                    </div>
+                  </div>
+
+
+                  <div className="bg-opacity-80 backdrop-blur-lg rounded-2xl p-4 min-w-[180px] border border-green-500">
+                    <div className="text-gray-300 mb-1 flex items-center justify-center">
+                      <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div> Easy
+                    </div>
+                    <div className="flex items-center justify-center">
+                      <div className="text-2xl font-bold text-green-400">{problemStats.easy}</div>
+                    </div>
+
+                  </div>
+
+                  <div className="bg-opacity-80 backdrop-blur-lg rounded-2xl p-4 min-w-[180px] border border-yellow-500">
+                    <div className="text-gray-300 mb-1 flex items-center justify-center">
+                      <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div> Medium
+                    </div>
+                    <div className="flex items-center justify-center">
+                      <div className="text-2xl font-bold text-yellow-400">{problemStats.medium}</div>
+                    </div>
+
+                  </div>
+
+                  <div className="bg-opacity-80 backdrop-blur-lg rounded-2xl p-4 min-w-[180px] border border-red-500">
+                    <div className="text-gray-300 mb-1 flex items-center justify-center">
+                      <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div> Hard
+                    </div>
+                    <div className="flex items-center justify-center">
+                      <div className="text-2xl font-bold text-red-400">{problemStats.hard}</div>
+                    </div>
+
                   </div>
                 </div>
               </div>
@@ -243,12 +307,15 @@ const MyProfile = () => {
           </div>
         )}
 
+
+
         {/* Heatmap Section */}
         <div className="mb-10">
-          <h2 className="text-2xl font-bold mb-6 text-orange-500 border-b border-orange-500 pb-2">
+          <h2 className="text-2xl font-bold mb-6 text-orange-500 border-b border-orange-500 pb-2 flex items-center">
+            <Calendar className="mr-3" size={24} />
             Activity Heatmap
           </h2>
-          <div className="rounded-2xl p-6 shadow-md border border-orange-500">
+          <div className="rounded-2xl p-6 shadow-md border border-orange-500 ">
             {apiErrors.heatmap ? (
               <div className="text-center py-4 text-orange-300">
                 <Calendar className="mx-auto mb-2" size={24} />
@@ -330,7 +397,7 @@ const MyProfile = () => {
           <h2 className="text-2xl font-bold mb-6 text-orange-500 border-b border-orange-500 pb-2">
             Submission History
           </h2>
-          <div className="rounded-2xl shadow-md overflow-hidden border border-orange-500">
+          <div className="rounded-2xl shadow-md overflow-hidden border border-orange-500 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
             {apiErrors.submissions ? (
               <div className="text-center py-6 text-orange-300">
                 <p>{apiErrors.submissions}</p>
@@ -338,24 +405,24 @@ const MyProfile = () => {
             ) : (
               <div className="overflow-x-auto max-h-96 overflow-y-auto">
                 <table className="min-w-full divide-y divide-gray-700">
-                  <thead className="bg-orange-200 sticky top-0">
+                  <thead className="bg-orange-900 bg-opacity-30 sticky top-0">
                     <tr>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-orange-500 uppercase tracking-wider">
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-orange-400 uppercase tracking-wider">
                         Date
                       </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-orange-500 uppercase tracking-wider">
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-orange-400 uppercase tracking-wider">
                         Problem
                       </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-orange-500 uppercase tracking-wider">
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-orange-400 uppercase tracking-wider">
                         Status
                       </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-orange-500 uppercase tracking-wider">
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-orange-400 uppercase tracking-wider">
                         Language
                       </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-orange-500 uppercase tracking-wider">
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-orange-400 uppercase tracking-wider">
                         Runtime
                       </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-orange-500 uppercase tracking-wider">
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-orange-400 uppercase tracking-wider">
                         Memory
                       </th>
                     </tr>
@@ -363,7 +430,7 @@ const MyProfile = () => {
                   <tbody className="divide-y divide-gray-800">
                     {submissions.length > 0 ? (
                       submissions.map((submission) => (
-                        <tr key={submission._id} className="hover:bg-gray-800 transition-colors">
+                        <tr key={submission._id} className="bg-black hover:bg-gray-800 hover:bg-opacity-50 transition-colors">
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                             {new Date(submission.createdAt).toLocaleDateString()}
                           </td>
