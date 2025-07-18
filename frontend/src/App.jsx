@@ -3,7 +3,7 @@ import { Route, Routes, useLocation, Navigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { checkAuth, checkCollegeAuth } from './authSlice';
 import LandingPage from "./pages/LandingPage";
-import Signup from './pages/SignUp';
+import Signup from './pages/Signup';
 import Login from './pages/Login';
 import PageNotFound from './pages/PageNotFound';
 import ProblemPage from './pages/ProblemPage'
