@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import axiosClient from '../../utils/axiosClient';
 import { motion, AnimatePresence } from 'framer-motion';
-import Navbar from '../Landing/navbar';
+import Navbar from '../Landing/Navbar';
 
 const DeleteProblem = () => {
   const [problems, setProblems] = useState([]);
