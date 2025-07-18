@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import axios from 'axios';
 import axiosClient from '../../utils/axiosClient';
 import { motion } from 'framer-motion';
-import Navbar from '../Landing/navbar';
+import Navbar from '../Landing/Navbar';
 
 function UploadVideo() {
   const { problemId } = useParams();
