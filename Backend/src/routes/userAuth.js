@@ -11,10 +11,10 @@ const {
   collegeRegister,
   collegeLogout,
   googleAuthCallback
-} = require('../controllers/userAuthent');
+} = require('../controllers/userAuthent.js');
 
-const userMiddleware = require('../middleware/userMiddleware');
-const collegeMiddleware = require('../middleware/collegeMiddleware');
+const userMiddleware = require('../middleware/userMiddleware.js');
+const collegeMiddleware = require('../middleware/collegeMiddleware.js');
 
 // User routes
 authRouter.post('/register', register);
