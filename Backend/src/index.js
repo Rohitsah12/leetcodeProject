@@ -61,6 +61,12 @@ app.use('/video', videoRouter)
 app.use('/userProfile',userRouter)
 app.use('/college',collegeRouter)
 
+app.get("/health", (req, res) => {
+    res.json({
+        success: true,
+        message: "Application is running..."
+    })
+})
 const InitializeConnection = async () => {
     try {
         await Promise.all([main(), redisClient.connect()]);
