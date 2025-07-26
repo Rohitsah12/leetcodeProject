@@ -119,15 +119,23 @@ const googleAuthCallback = (req, res) => {
     res.cookie('token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // Fix for production
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      domain: process.env.NODE_ENV === 'production' ? process.env.COOKIE_DOMAIN : undefined // Add domain
     });
 
-    res.redirect(`${process.env.FRONTEND_URL}`);
+    // Clear the session since we're using JWT
+    req.logout((err) => {
+      if (err) console.error('Session logout error:', err);
+      res.redirect(`${process.env.FRONTEND_URL}`);
+    });
+
   } catch (error) {
+    console.error('Google auth callback error:', error);
     res.redirect(`${process.env.FRONTEND_URL}/login?error=${encodeURIComponent(error.message)}`);
   }
 };
+
 
 const collegeRegister = async (req, res) => {
   try {
