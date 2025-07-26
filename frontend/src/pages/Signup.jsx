@@ -5,10 +5,16 @@ import { z } from "zod";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, NavLink } from "react-router-dom";
 import { registerUser, resetAuthError } from "../authSlice";
-import { FaGoogle, FaExclamationTriangle, FaCheckCircle, FaUniversity } from "react-icons/fa";
+import {
+  FaGoogle,
+  FaExclamationTriangle,
+  FaCheckCircle,
+  FaUniversity,
+} from "react-icons/fa";
 import { Eye, EyeOff, AlertCircle, X } from "lucide-react";
 const apiUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
-const frontendUrl = import.meta.env.VITE_FRONTEND_URL || "http://localhost:5173";
+const frontendUrl =
+  import.meta.env.VITE_FRONTEND_URL || "http://localhost:5173";
 
 const signupSchema = z
   .object({
@@ -17,7 +23,10 @@ const signupSchema = z
     password: z
       .string()
       .min(8, "Password must be at least 8 characters")
-      .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, "Password must contain at least one uppercase letter, one lowercase letter, and one number"),
+      .regex(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+        "Password must contain at least one uppercase letter, one lowercase letter, and one number"
+      ),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -59,93 +68,115 @@ function Signup() {
   // Handle different error types
   const getErrorMessage = (error) => {
     if (!error) return null;
-    
-    const errorStr = typeof error === 'string' ? error : error.message || JSON.stringify(error);
-    
-    if (errorStr.toLowerCase().includes('email') && errorStr.toLowerCase().includes('exist')) {
+
+    const errorStr =
+      typeof error === "string"
+        ? error
+        : error.message || JSON.stringify(error);
+
+    if (
+      errorStr.toLowerCase().includes("email") &&
+      errorStr.toLowerCase().includes("exist")
+    ) {
       return {
-        type: 'warning',
-        title: 'Email Already Registered',
-        message: 'An account with this email already exists. Please try another email or log in.',
-        action: 'login'
+        type: "warning",
+        title: "Email Already Registered",
+        message:
+          "An account with this email already exists. Please try another email or log in.",
+        action: "login",
       };
     }
-    if (errorStr.toLowerCase().includes('invalid email') || errorStr.toLowerCase().includes('email validation')) {
+    if (
+      errorStr.toLowerCase().includes("invalid email") ||
+      errorStr.toLowerCase().includes("email validation")
+    ) {
       return {
-        type: 'error',
-        title: 'Invalid Email Format',
-        message: 'Please enter a valid email address.',
-        action: 'retry'
+        type: "error",
+        title: "Invalid Email Format",
+        message: "Please enter a valid email address.",
+        action: "retry",
       };
     }
-    if (errorStr.toLowerCase().includes('password') && errorStr.toLowerCase().includes('requirement')) {
+    if (
+      errorStr.toLowerCase().includes("password") &&
+      errorStr.toLowerCase().includes("requirement")
+    ) {
       return {
-        type: 'error',
-        title: 'Weak Password',
-        message: 'Password must contain at least 8 characters with uppercase, lowercase, and numbers.',
-        action: 'retry'
+        type: "error",
+        title: "Weak Password",
+        message:
+          "Password must contain at least 8 characters with uppercase, lowercase, and numbers.",
+        action: "retry",
       };
     }
-    if (errorStr.toLowerCase().includes('network') || errorStr.toLowerCase().includes('connection')) {
+    if (
+      errorStr.toLowerCase().includes("network") ||
+      errorStr.toLowerCase().includes("connection")
+    ) {
       return {
-        type: 'error',
-        title: 'Connection Error',
-        message: 'Please check your internet connection and try again.',
-        action: 'retry'
+        type: "error",
+        title: "Connection Error",
+        message: "Please check your internet connection and try again.",
+        action: "retry",
       };
     }
-    if (errorStr.toLowerCase().includes('validation') || errorStr.toLowerCase().includes('invalid')) {
+    if (
+      errorStr.toLowerCase().includes("validation") ||
+      errorStr.toLowerCase().includes("invalid")
+    ) {
       return {
-        type: 'error',
-        title: 'Invalid Information',
-        message: 'Please check your information and try again.',
-        action: 'retry'
+        type: "error",
+        title: "Invalid Information",
+        message: "Please check your information and try again.",
+        action: "retry",
       };
     }
-    if (errorStr.includes('401')) {
+    if (errorStr.includes("401")) {
       return {
-        type: 'error',
-        title: 'Session Expired',
-        message: 'Your session has expired. Please try again.',
-        action: 'retry'
+        type: "error",
+        title: "Session Expired",
+        message: "Your session has expired. Please try again.",
+        action: "retry",
       };
     }
-    
+
     return {
-      type: 'error',
-      title: 'Signup Failed',
-      message: errorStr || 'An unexpected error occurred. Please try again.',
-      action: 'retry'
+      type: "error",
+      title: "Signup Failed",
+      message: errorStr || "An unexpected error occurred. Please try again.",
+      action: "retry",
     };
   };
 
   const onSubmit = async (data) => {
     setNotification(null);
     dispatch(resetAuthError());
-    
+
     try {
       const result = await dispatch(registerUser(data));
-      if (result.type === 'auth/registerUser/fulfilled') {
+      if (result.type === "auth/registerUser/fulfilled") {
         setNotification({
-          type: 'success',
-          title: 'Account Created Successfully!',
-          message: 'Welcome to IndieCode! You can now start your coding journey.',
-          action: null
+          type: "success",
+          title: "Account Created Successfully!",
+          message:
+            "Welcome to IndieCode! You can now start your coding journey.",
+          action: null,
         });
         setTimeout(() => {
           navigate("/");
         }, 2000);
       }
     } catch (err) {
-      console.error('Signup error:', err);
+      console.error("Signup error:", err);
     }
   };
 
   const handleGoogleSignup = () => {
-  
-  window.location.href = `${apiUrl}/user/google`;
-};
-
+    const redirectUri = `${window.location.origin}/user/google/callback`;
+    window.location.href = `${apiUrl}/user/google?redirect_uri=${encodeURIComponent(
+      redirectUri
+    )}`;
+  };
 
   const dismissNotification = () => {
     setNotification(null);
@@ -167,8 +198,8 @@ function Signup() {
 
   // Password strength indicator
   const getPasswordStrength = (password) => {
-    if (!password) return { strength: 0, label: '', color: '' };
-    
+    if (!password) return { strength: 0, label: "", color: "" };
+
     let strength = 0;
     if (password.length >= 8) strength++;
     if (password.match(/[a-z]/)) strength++;
@@ -176,13 +207,19 @@ function Signup() {
     if (password.match(/[0-9]/)) strength++;
     if (password.match(/[^a-zA-Z0-9]/)) strength++;
 
-    const labels = ['Very Weak', 'Weak', 'Fair', 'Good', 'Strong'];
-    const colors = ['bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-blue-500', 'bg-green-500'];
-    
+    const labels = ["Very Weak", "Weak", "Fair", "Good", "Strong"];
+    const colors = [
+      "bg-red-500",
+      "bg-orange-500",
+      "bg-yellow-500",
+      "bg-blue-500",
+      "bg-green-500",
+    ];
+
     return {
       strength: (strength / 5) * 100,
-      label: labels[strength - 1] || 'Very Weak',
-      color: colors[strength - 1] || 'bg-red-500'
+      label: labels[strength - 1] || "Very Weak",
+      color: colors[strength - 1] || "bg-red-500",
     };
   };
 
@@ -200,18 +237,20 @@ function Signup() {
       {/* Notification Toast */}
       {(notification || errorInfo) && (
         <div className="fixed top-4 right-4 z-50 max-w-md">
-          <div className={`p-4 rounded-lg shadow-lg border backdrop-blur-md ${
-            (notification?.type || errorInfo?.type) === 'success' 
-              ? 'bg-green-900/90 border-green-500/50 text-green-100' 
-              : (notification?.type || errorInfo?.type) === 'warning'
-              ? 'bg-yellow-900/90 border-yellow-500/50 text-yellow-100'
-              : 'bg-red-900/90 border-red-500/50 text-red-100'
-          }`}>
+          <div
+            className={`p-4 rounded-lg shadow-lg border backdrop-blur-md ${
+              (notification?.type || errorInfo?.type) === "success"
+                ? "bg-green-900/90 border-green-500/50 text-green-100"
+                : (notification?.type || errorInfo?.type) === "warning"
+                ? "bg-yellow-900/90 border-yellow-500/50 text-yellow-100"
+                : "bg-red-900/90 border-red-500/50 text-red-100"
+            }`}
+          >
             <div className="flex items-start gap-3">
               <div className="flex-shrink-0">
-                {(notification?.type || errorInfo?.type) === 'success' ? (
+                {(notification?.type || errorInfo?.type) === "success" ? (
                   <FaCheckCircle className="text-green-400 text-xl" />
-                ) : (notification?.type || errorInfo?.type) === 'warning' ? (
+                ) : (notification?.type || errorInfo?.type) === "warning" ? (
                   <FaExclamationTriangle className="text-yellow-400 text-xl" />
                 ) : (
                   <AlertCircle className="text-red-400 text-xl" />
@@ -226,18 +265,20 @@ function Signup() {
                 </p>
                 {(notification?.action || errorInfo?.action) && (
                   <div className="mt-3 flex gap-2">
-                    {(notification?.action || errorInfo?.action) === 'login' && (
+                    {(notification?.action || errorInfo?.action) ===
+                      "login" && (
                       <button
                         onClick={() => {
                           dismissNotification();
-                          navigate('/login');
+                          navigate("/login");
                         }}
                         className="text-xs px-3 py-1 bg-white/20 hover:bg-white/30 rounded transition-colors"
                       >
                         Go to Login
                       </button>
                     )}
-                    {(notification?.action || errorInfo?.action) === 'retry' && (
+                    {(notification?.action || errorInfo?.action) ===
+                      "retry" && (
                       <button
                         onClick={handleRetry}
                         className="text-xs px-3 py-1 bg-white/20 hover:bg-white/30 rounded transition-colors"
@@ -320,7 +361,10 @@ function Signup() {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {/* First Name */}
             <div className="space-y-2">
-              <label htmlFor="firstName" className="block text-sm font-medium text-white">
+              <label
+                htmlFor="firstName"
+                className="block text-sm font-medium text-white"
+              >
                 First Name
               </label>
               <input
@@ -329,7 +373,9 @@ function Signup() {
                 placeholder="John"
                 autoComplete="given-name"
                 className={`w-full px-4 py-3 bg-white/5 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 ${
-                  errors.firstName ? "border-red-500 focus:ring-red-500" : "border-white/10"
+                  errors.firstName
+                    ? "border-red-500 focus:ring-red-500"
+                    : "border-white/10"
                 }`}
                 {...register("firstName")}
               />
@@ -343,7 +389,10 @@ function Signup() {
 
             {/* Email */}
             <div className="space-y-2">
-              <label htmlFor="emailId" className="block text-sm font-medium text-white">
+              <label
+                htmlFor="emailId"
+                className="block text-sm font-medium text-white"
+              >
                 Email Address
               </label>
               <input
@@ -352,7 +401,9 @@ function Signup() {
                 placeholder="john@example.com"
                 autoComplete="email"
                 className={`w-full px-4 py-3 bg-white/5 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 ${
-                  errors.emailId ? "border-red-500 focus:ring-red-500" : "border-white/10"
+                  errors.emailId
+                    ? "border-red-500 focus:ring-red-500"
+                    : "border-white/10"
                 }`}
                 {...register("emailId")}
               />
@@ -366,7 +417,10 @@ function Signup() {
 
             {/* Password */}
             <div className="space-y-2">
-              <label htmlFor="password" className="block text-sm font-medium text-white">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-white"
+              >
                 Password
               </label>
               <div className="relative">
@@ -376,7 +430,9 @@ function Signup() {
                   placeholder="••••••••"
                   autoComplete="new-password"
                   className={`w-full px-4 py-3 pr-12 bg-white/5 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 ${
-                    errors.password ? "border-red-500 focus:ring-red-500" : "border-white/10"
+                    errors.password
+                      ? "border-red-500 focus:ring-red-500"
+                      : "border-white/10"
                   }`}
                   {...register("password")}
                 />
@@ -389,7 +445,7 @@ function Signup() {
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
               </div>
-              
+
               {/* Password Strength Indicator */}
               {password && (
                 <div className="space-y-1">
@@ -400,11 +456,13 @@ function Signup() {
                         style={{ width: `${passwordStrength.strength}%` }}
                       ></div>
                     </div>
-                    <span className="text-xs text-white/60">{passwordStrength.label}</span>
+                    <span className="text-xs text-white/60">
+                      {passwordStrength.label}
+                    </span>
                   </div>
                 </div>
               )}
-              
+
               {errors.password && (
                 <div className="flex items-center gap-2 text-red-400 text-sm">
                   <AlertCircle size={16} />
@@ -415,7 +473,10 @@ function Signup() {
 
             {/* Confirm Password */}
             <div className="space-y-2">
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-white">
+              <label
+                htmlFor="confirmPassword"
+                className="block text-sm font-medium text-white"
+              >
                 Confirm Password
               </label>
               <div className="relative">
@@ -425,7 +486,9 @@ function Signup() {
                   placeholder="••••••••"
                   autoComplete="new-password"
                   className={`w-full px-4 py-3 pr-12 bg-white/5 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 ${
-                    errors.confirmPassword ? "border-red-500 focus:ring-red-500" : "border-white/10"
+                    errors.confirmPassword
+                      ? "border-red-500 focus:ring-red-500"
+                      : "border-white/10"
                   }`}
                   {...register("confirmPassword")}
                 />
@@ -433,9 +496,15 @@ function Signup() {
                   type="button"
                   className="absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                  aria-label={
+                    showConfirmPassword ? "Hide password" : "Show password"
+                  }
                 >
-                  {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  {showConfirmPassword ? (
+                    <EyeOff size={20} />
+                  ) : (
+                    <Eye size={20} />
+                  )}
                 </button>
               </div>
               {errors.confirmPassword && (
@@ -451,7 +520,9 @@ function Signup() {
               type="submit"
               disabled={loading}
               className={`w-full py-3 px-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-medium rounded-lg shadow-lg hover:from-orange-600 hover:to-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-black transition-all duration-200 ${
-                loading ? "opacity-50 cursor-not-allowed" : "hover:shadow-orange-500/25"
+                loading
+                  ? "opacity-50 cursor-not-allowed"
+                  : "hover:shadow-orange-500/25"
               }`}
             >
               {loading ? (
@@ -469,8 +540,8 @@ function Signup() {
             <div className="text-center">
               <span className="text-sm text-white/60">
                 Already have an account?{" "}
-                <NavLink 
-                  to="/login" 
+                <NavLink
+                  to="/login"
                   className="text-orange-400 hover:text-orange-300 transition-colors font-medium"
                   onClick={() => dispatch(resetAuthError())}
                 >
@@ -478,7 +549,7 @@ function Signup() {
                 </NavLink>
               </span>
             </div>
-            
+
             {/* College Signup Option */}
             <div className="text-center">
               <button
