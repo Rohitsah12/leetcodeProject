@@ -16,19 +16,29 @@ const passport = require('passport');
 const userRouter = require('./routes/userRouter');
 const collegeRouter = require('./routes/college');
 
-
-
 app.set('trust proxy', 1);
 
-// CORS before other middleware
+// Enhanced CORS configuration
 app.use(cors({
-    origin: process.env.FRONTEND_URL,
+    origin: function (origin, callback) {
+        // Allow requests with no origin (mobile apps, etc.)
+        if (!origin) return callback(null, true);
+        
+        const allowedOrigins = [process.env.FRONTEND_URL];
+        if (allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true,
     exposedHeaders: ['set-cookie'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    optionsSuccessStatus: 200
 }));
 
-// If using sessions, increase duration
+// Session configuration for Google OAuth
 app.use(session({
     secret: process.env.SESSION_SECRET,
     resave: false,
@@ -41,7 +51,9 @@ app.use(session({
         maxAge: 24 * 60 * 60 * 1000, // 24 hours in milliseconds
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        // Add domain for production
+        domain: process.env.NODE_ENV === 'production' ? process.env.COOKIE_DOMAIN : undefined
     }
 }));
 
@@ -51,6 +63,15 @@ require('./config/passport');
 
 app.use(express.json());
 app.use(cookieParser());
+
+// Debug middleware (remove in production)
+app.use((req, res, next) => {
+    if (process.env.NODE_ENV !== 'production') {
+        console.log('Cookies received:', req.cookies);
+        console.log('Session:', req.session?.id ? 'Present' : 'Not present');
+    }
+    next();
+});
 
 app.use('/user', authRouter);
 app.use('/problem', problemRouter)
@@ -66,6 +87,7 @@ app.get("/health", (req, res) => {
         message: "Application is running..."
     })
 })
+
 const InitializeConnection = async () => {
     try {
         await Promise.all([main(), redisClient.connect()]);
@@ -73,11 +95,9 @@ const InitializeConnection = async () => {
         app.listen(process.env.PORT, () => {
             console.log("Server listening at port number: " + process.env.PORT);
         });
-
     }
     catch (err) {
         console.log("Error :" + err);
-
     }
 }
 
