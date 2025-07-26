@@ -4,6 +4,7 @@ import CollegeNavbar from '../../components/Landing/CollegeNavbar';
 import { Edit, Loader, AlertCircle, User, X, Check, Search } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
+const frontendUrl = import.meta.env.VITE_FRONTEND_URL || "http://localhost:5173";
 
 // Custom hook for debounced search
 const useDebounce = (value, delay) => {
@@ -415,7 +416,7 @@ const UpdateStudent = () => {
                       message: "Enter valid Doocode URL"
                     }
                   })}
-                  placeholder="http://localhost:5173/myprofile/68571f161296ad5e570bdb69"
+                  placeholder={`${frontendUrl}/myprofile/68571f161296ad5e570bdb69`}
                   className={`w-full bg-black/30 border ${
                     errors.doocode ? 'border-red-500' : 'border-orange-500/50'
                   } rounded-lg py-3 px-4 text-neutral-200 focus:outline-none focus:ring-2 focus:ring-orange-500`}
@@ -424,7 +425,7 @@ const UpdateStudent = () => {
                   <p className="text-red-500 mt-1 text-sm">{errors.doocode.message}</p>
                 )}
                 <p className="text-neutral-500 text-sm mt-1">
-                  Enter full Doocode URL (e.g., http://localhost:5173/myprofile/68571f161296ad5e570bdb69)
+                  Enter full Doocode URL (e.g., {`{frontendUrl}/myprofile/68571f161296ad5e570bdb69`})
                 </p>
               </div>
               

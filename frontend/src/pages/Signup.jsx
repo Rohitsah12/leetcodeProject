@@ -7,6 +7,8 @@ import { useNavigate, NavLink } from "react-router-dom";
 import { registerUser, resetAuthError } from "../authSlice";
 import { FaGoogle, FaExclamationTriangle, FaCheckCircle, FaUniversity } from "react-icons/fa";
 import { Eye, EyeOff, AlertCircle, X } from "lucide-react";
+const apiUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
+const frontendUrl = import.meta.env.VITE_FRONTEND_URL || "http://localhost:5173";
 
 const signupSchema = z
   .object({
@@ -140,8 +142,7 @@ function Signup() {
   };
 
   const handleGoogleSignup = () => {
-    window.location.href =
-      "http://localhost:3000/user/google?redirect_uri=http://localhost:5173/auth/google/callback";
+    window.location.href = `${apiUrl}/user/google?redirect_uri=${encodeURIComponent(`${frontendUrl}/auth/google/callback`)}`;
   };
 
   const dismissNotification = () => {

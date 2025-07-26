@@ -7,6 +7,7 @@ import { useNavigate, NavLink } from "react-router-dom";
 import { loginUser, resetAuthError } from "../authSlice";
 import { FaGoogle, FaExclamationTriangle, FaCheckCircle, FaUniversity } from "react-icons/fa";
 import { Eye, EyeOff, AlertCircle, X } from "lucide-react";
+const apiUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
 
 const loginSchema = z.object({
   emailId: z.string().email("Invalid email address"),
@@ -117,7 +118,7 @@ function Login() {
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = "http://localhost:3000/user/google";
+    window.location.href = `${apiUrl}/user/google`
   };
 
   const dismissNotification = () => {

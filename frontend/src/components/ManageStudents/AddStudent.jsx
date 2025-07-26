@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import axiosClient from '../../utils/axiosClient';
 import CollegeNavbar from '../../components/Landing/CollegeNavbar';
 import { GraduationCap, User, Github, AlertCircle, Check, X } from 'lucide-react';
+const frontendUrl = import.meta.env.VITE_FRONTEND_URL || "http://localhost:5173";
 
 const AddStudent = () => {
   const navigate = useNavigate();
@@ -118,7 +119,7 @@ const AddStudent = () => {
                       message: "Enter valid Doocode URL"
                     }
                   })}
-                  placeholder="http://localhost:5173/myprofile/<userid>"
+                  placeholder={`${frontendUrl}/myprofile/<userid>`}
                   className={`w-full bg-black/30 border ${
                     errors.doocode ? 'border-red-500' : 'border-orange-500/50'
                   } rounded-lg py-3 px-4 pl-10 text-neutral-200 focus:outline-none focus:ring-2 focus:ring-orange-500`}
@@ -134,7 +135,7 @@ const AddStudent = () => {
                 </p>
               )}
               <p className="text-neutral-500 text-sm mt-1 flex items-center">
-                <span className="mr-1">💡</span> Enter full Doocode URL (e.g., http://localhost:5173/myprofile/userid)
+                <span className="mr-1">💡</span> Enter full Doocode URL (e.g., {`${frontendUrl}`}/myprofile/userid)
               </p>
             </div>
             
