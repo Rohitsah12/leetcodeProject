@@ -1,16 +1,17 @@
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const User = require('../models/user');
-const jwt = require('jsonwebtoken'); // ADDED
 
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: '/user/google/callback',
+    // Fix: Use absolute URL for production
+    callbackURL: process.env.NODE_ENV === 'production' 
+        ? 'https://leetcodeproject-82po.onrender.com/user/google/callback'
+        : '/user/google/callback',
     scope: ['profile', 'email']
 }, async (accessToken, refreshToken, profile, done) => {
     try {
-        // Find user by Google ID or email
         let user = await User.findOne({
             $or: [
                 { googleId: profile.id },
@@ -19,7 +20,6 @@ passport.use(new GoogleStrategy({
         });
 
         if (user) {
-            // Update existing user with Google ID if missing
             if (!user.googleId) {
                 user.googleId = profile.id;
                 user.isVerified = true;
@@ -28,7 +28,6 @@ passport.use(new GoogleStrategy({
             return done(null, user);
         }
 
-        // Create new user
         const nameParts = profile.displayName.split(' ');
         const newUser = new User({
             googleId: profile.id,

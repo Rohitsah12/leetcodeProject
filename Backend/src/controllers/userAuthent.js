@@ -1,13 +1,21 @@
 const redisClient = require('../config/redis');
 const College = require('../models/college');
-const Submission = require('../models/submission');
 const User = require('../models/user');
 const validate = require('../utils/validator');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const collegeValidate = require('../utils/collegeValidator');
 
-const    register = async (req, res) => {
+// Helper function for consistent cookie settings
+const getCookieOptions = () => ({
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // Fixed: consistent across all
+  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  domain: process.env.NODE_ENV === 'production' ? process.env.COOKIE_DOMAIN : undefined
+});
+
+const register = async (req, res) => {
   try {
     validate(req.body);
     const { firstName, emailId, password } = req.body;
@@ -28,12 +36,8 @@ const    register = async (req, res) => {
       role: user.role,
     };
 
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000, 
-    });
+    // Use consistent cookie options
+    res.cookie('token', token, getCookieOptions());
     
     res.status(201).json({
       user: reply,
@@ -70,12 +74,8 @@ const login = async (req, res) => {
       { expiresIn: '7d' }
     );
 
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    });
+    // Use consistent cookie options
+    res.cookie('token', token, getCookieOptions());
     
     res.status(200).json({
       user: reply,
@@ -95,7 +95,12 @@ const logout = async (req, res) => {
     await redisClient.set(`token:${token}`, 'Blocked');
     await redisClient.expireAt(`token:${token}`, payload.exp);
 
-    res.clearCookie('token');
+    res.clearCookie('token', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      domain: process.env.NODE_ENV === 'production' ? process.env.COOKIE_DOMAIN : undefined
+    });
     res.status(200).send("Logged out successfully");
   } catch (error) {
     res.status(503).json({ error: error.message });
@@ -116,18 +121,13 @@ const googleAuthCallback = (req, res) => {
       { expiresIn: '7d' }
     );
 
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // Fix for production
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-      domain: process.env.NODE_ENV === 'production' ? process.env.COOKIE_DOMAIN : undefined // Add domain
-    });
+    // Use consistent cookie options
+    res.cookie('token', token, getCookieOptions());
 
     // Clear the session since we're using JWT
     req.logout((err) => {
       if (err) console.error('Session logout error:', err);
-      res.redirect(`${process.env.FRONTEND_URL}`);
+      res.redirect(`${process.env.FRONTEND_URL}/problemset`); // Redirect to a protected page
     });
 
   } catch (error) {
@@ -135,7 +135,6 @@ const googleAuthCallback = (req, res) => {
     res.redirect(`${process.env.FRONTEND_URL}/login?error=${encodeURIComponent(error.message)}`);
   }
 };
-
 
 const collegeRegister = async (req, res) => {
   try {
@@ -156,12 +155,8 @@ const collegeRegister = async (req, res) => {
       _id: college._id,
     };
     
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    });
+    // Use consistent cookie options
+    res.cookie('token', token, getCookieOptions());
     
     res.status(201).json({
       college: reply,
@@ -197,12 +192,8 @@ const collegeLogin = async (req, res) => {
       { expiresIn: '7d' }
     );
 
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    });
+    // Use consistent cookie options
+    res.cookie('token', token, getCookieOptions());
     
     res.status(200).json({
       college: reply,
@@ -222,7 +213,12 @@ const collegeLogout = async (req, res) => {
     await redisClient.set(`token:${token}`, 'Blocked');
     await redisClient.expireAt(`token:${token}`, payload.exp);
 
-    res.clearCookie('token');
+    res.clearCookie('token', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      domain: process.env.NODE_ENV === 'production' ? process.env.COOKIE_DOMAIN : undefined
+    });
     res.status(200).send("College logged out successfully");
   } catch (error) {
     res.status(503).json({ error: error.message });

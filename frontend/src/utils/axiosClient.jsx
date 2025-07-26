@@ -10,10 +10,12 @@ const axiosClient = axios.create({
     }
 });
 
-// Add request interceptor for debugging
+// Enhanced request interceptor
 axiosClient.interceptors.request.use(
     (config) => {
+        console.log('Making request to:', config.baseURL + config.url);
         console.log('Request cookies:', document.cookie);
+        console.log('WithCredentials:', config.withCredentials);
         return config;
     },
     (error) => {
@@ -21,13 +23,18 @@ axiosClient.interceptors.request.use(
     }
 );
 
-// Add response interceptor for debugging
+// Enhanced response interceptor
 axiosClient.interceptors.response.use(
     (response) => {
         return response;
     },
     (error) => {
-        console.log('Response error:', error.response?.data);
+        console.log('Response error:', error.response?.status, error.response?.data);
+        // If token expired or invalid, redirect to login
+        if (error.response?.status === 401) {
+            console.log('Authentication failed - redirecting to login');
+            window.location.href = '/login';
+        }
         return Promise.reject(error);
     }
 );
