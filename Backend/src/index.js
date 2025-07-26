@@ -16,17 +16,10 @@ const passport = require('passport');
 const userRouter = require('./routes/userRouter');
 const collegeRouter = require('./routes/college');
 
-const allowedOrigins = [process.env.FRONTEND_URL, process.env.FRONTEND_URL2];
+
 
 app.use(cors({
-    origin: function (origin, callback) {
-        if (!origin) return callback(null, true);
-        if (allowedOrigins.includes(origin)) {
-            return callback(null, true);
-        } else {
-            return callback(new Error('Not allowed by CORS'));
-        }
-    },
+    origin:process.env.FRONTEND_URL,
     credentials: true
 }));
 
