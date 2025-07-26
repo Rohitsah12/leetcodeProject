@@ -132,7 +132,7 @@ res.cookie('token', token, getCookieOptions());
     req.logout((err) => {
       if (err) console.error('Session logout error:', err);
       
-      res.redirect(`${process.env.FRONTEND_URL}/auth-success?redirect=`);
+      res.redirect(`${process.env.FRONTEND_URL}`);
 
     });
 
