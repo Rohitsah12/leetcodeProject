@@ -18,24 +18,30 @@ const collegeRouter = require('./routes/college');
 
 
 
+app.set('trust proxy', 1);
+
+// CORS before other middleware
 app.use(cors({
-    origin:process.env.FRONTEND_URL,
-    credentials: true
+    origin: process.env.FRONTEND_URL,
+    credentials: true,
+    exposedHeaders: ['set-cookie'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']
 }));
 
+// If using sessions, increase duration
 app.use(session({
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     store: MongoStore.create({
         mongoUrl: process.env.DB_CONNECT_STRING,
-        ttl: 10 * 60 
+        ttl: 24 * 60 * 60 // 24 hours in seconds
     }),
     cookie: {
-        maxAge: 10 * 60 * 1000,
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
+        maxAge: 24 * 60 * 60 * 1000, // 24 hours in milliseconds
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
     }
 }));
 
