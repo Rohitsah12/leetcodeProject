@@ -27,6 +27,7 @@ import DeleteStudent from './components/ManageStudents/DeleteStudent';
 import UpdateStudent from './components/ManageStudents/UpdateStudent';
 import Students from './pages/Students';
 import EventTracker from './pages/EventTracker';
+import AuthSuccess from './components/AuthSuccess';
 
 const App = () => {
   const dispatch = useDispatch();
@@ -85,6 +86,7 @@ const App = () => {
       <Route path='/myprofile/:id' element={<MyProfile />} />
       <Route path="/problem/:problemId" element={<Problem/>}></Route>
       <Route path="/auth/google/callback" element={<GoogleCallback />} />
+      <Route path='auth-success' element={<AuthSuccess />}/>
       <Route path='/college' element={<CollegeLanding />}/>
       <Route path='/eventTracker' element={<EventTracker />}></Route>
       

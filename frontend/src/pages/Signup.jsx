@@ -142,8 +142,10 @@ function Signup() {
   };
 
   const handleGoogleSignup = () => {
-    window.location.href = `${apiUrl}/user/google?redirect_uri=${frontendUrl}/user/google/callback`;
-  };
+  
+  window.location.href = `${apiUrl}/user/google`;
+};
+
 
   const dismissNotification = () => {
     setNotification(null);
