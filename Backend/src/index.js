@@ -32,10 +32,10 @@ app.use(session({
         ttl: 10 * 60 
     }),
     cookie: {
-        maxAge: 10 * 60 * 1000, // 10 minutes
-        httpOnly: true,
-        secure: false, // Set to true in production with HTTPS
-        sameSite: 'lax'
+        maxAge: 10 * 60 * 1000,
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
     }
 }));
 
