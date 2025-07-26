@@ -6,6 +6,7 @@ import Navbar from '../components/Landing/Navbar';
 import CalendarHeatmap from 'react-calendar-heatmap';
 import 'react-calendar-heatmap/dist/styles.css';
 import { useParams } from 'react-router';
+import Footer from '../components/Landing/Footer';
 
 // Helper function to get local date string in YYYY-MM-DD format
 const getLocalDateString = (date) => {
@@ -468,11 +469,7 @@ const MyProfile = () => {
         </div>
       </div>
 
-      <footer className="border-t border-orange-500 mt-10 py-6">
-        <div className="container mx-auto px-4 text-center text-gray-400">
-          <p>© 2025 DooCode. All rights reserved.</p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 };
