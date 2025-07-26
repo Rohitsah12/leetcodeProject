@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import MDEditor from '@uiw/react-md-editor';
 
+
 // Zod schema for form validation
 const problemSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -45,6 +46,16 @@ const problemSchema = z.object({
   ).length(3, 'All three languages required')
 });
 
+
+// Arrow Left Icon SVG Component
+const ArrowLeftIcon = (props) => (
+  <svg {...props} xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="m12 19-7-7 7-7"/>
+    <path d="M19 12H6"/>
+  </svg>
+);
+
+
 // Help Icon SVG Component
 const HelpIcon = (props) => (
   <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -54,6 +65,7 @@ const HelpIcon = (props) => (
   </svg>
 );
 
+
 // Success Icon SVG Component
 const SuccessIcon = () => (
   <svg className="w-16 h-16 text-green-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -61,12 +73,14 @@ const SuccessIcon = () => (
   </svg>
 );
 
+
 // Error Icon SVG Component
 const ErrorIcon = () => (
   <svg className="w-16 h-16 text-red-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
   </svg>
 );
+
 
 // Two Sum example data to pre-fill the form
 const twoSumExampleData = {
@@ -101,6 +115,7 @@ const twoSumExampleData = {
   ]
 };
 
+
 // Define empty form values
 const emptyFormValues = {
   title: '',
@@ -124,6 +139,7 @@ const emptyFormValues = {
   ]
 };
 
+
 function CreateProblem() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
@@ -141,6 +157,7 @@ function CreateProblem() {
     return savedFormData ? JSON.parse(savedFormData) : emptyFormValues;
   };
 
+
   const {
     register,
     control,
@@ -154,8 +171,10 @@ function CreateProblem() {
     defaultValues: getInitialValues()
   });
 
+
   const formData = watch();
   const markdownValue = watch('description');
+
 
   useEffect(() => {
     // Only save to localStorage if form has data
@@ -170,6 +189,7 @@ function CreateProblem() {
     }
   }, [formData]);
 
+
   // Fixed clear form function
   const clearFormData = () => {
     // Remove from localStorage first
@@ -178,13 +198,16 @@ function CreateProblem() {
     reset(emptyFormValues);
   };
 
+
   const fillWithExample = () => {
     reset(twoSumExampleData);
     setIsHelpModalOpen(false);
   };
 
+
   const { fields: visibleFields, append: appendVisible, remove: removeVisible } = useFieldArray({ control, name: 'visibleTestCases' });
   const { fields: hiddenFields, append: appendHidden, remove: removeHidden } = useFieldArray({ control, name: 'hiddenTestCases' });
+
 
   const handleAddItem = (e, fieldName) => {
     if (e.key === 'Enter' || e.key === ',') {
@@ -200,16 +223,19 @@ function CreateProblem() {
     }
   };
 
+
   const removeItem = (index, fieldName) => {
     const currentItems = [...(watch(fieldName) || [])];
     currentItems.splice(index, 1);
     setValue(fieldName, currentItems);
   };
 
+
   const onSubmit = (data) => {
     setPendingFormData(data);
     setIsConfirmModalOpen(true);
   };
+
 
   const confirmSubmit = async () => {
     setIsConfirmModalOpen(false);
@@ -236,6 +262,7 @@ function CreateProblem() {
     }
   };
 
+
   // Helper component for array input fields
   const ArrayInput = ({ fieldName, placeholder, color }) => {
     const items = watch(fieldName) || [];
@@ -251,6 +278,7 @@ function CreateProblem() {
       blue: 'text-blue-500 hover:text-blue-300',
       green: 'text-green-500 hover:text-green-300'
     };
+
 
     return (
       <div className={`bg-black/30 border ${errors[fieldName] ? 'border-red-500' : 'border-orange-500/30'} rounded-lg p-2`}>
@@ -272,26 +300,44 @@ function CreateProblem() {
     );
   };
 
+
   return (
     <div className="min-h-screen" style={{ backgroundImage: `url('https://res.cloudinary.com/dltqzdtfh/image/upload/v1750446385/gridbg_uxjjws.png')`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
       <Navbar />
       
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="container mx-auto px-4 py-8 max-w-4xl">
+        {/* Back to Admin Button */}
+        <motion.div 
+          initial={{ opacity: 0, x: -20 }} 
+          animate={{ opacity: 1, x: 0 }} 
+          transition={{ delay: 0.1 }}
+          className="mb-6"
+        >
+          <button 
+            onClick={() => navigate('/admin')}
+            className="flex items-center gap-2 text-orange-400 hover:text-orange-300 transition-colors duration-200 group"
+          >
+            <ArrowLeftIcon className="group-hover:-translate-x-1 transition-transform duration-200" />
+            <span className="font-medium">Back to Admin Panel</span>
+          </button>
+        </motion.div>
+
         <div className="text-center mb-8">
           <div className="flex justify-center items-center gap-4">
-            <motion.h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-orange-400 to-orange-600 bg-clip-text text-transparent mb-2" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}>
+            <motion.h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-orange-400 to-orange-600 bg-clip-text text-transparent mb-2" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
               Create New Problem
             </motion.h1>
-            <motion.button type="button" onClick={() => setIsHelpModalOpen(true)} className="text-orange-400 hover:text-orange-200 transition-colors" aria-label="Help" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
+            <motion.button type="button" onClick={() => setIsHelpModalOpen(true)} className="text-orange-400 hover:text-orange-200 transition-colors" aria-label="Help" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>
               <HelpIcon />
             </motion.button>
           </div>
           <p className="text-neutral-300">Add a new coding challenge to the platform</p>
         </div>
 
+
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
           {/* Basic Information Card */}
-          <motion.div className="bg-black/40 backdrop-blur-sm border border-orange-500/30 rounded-2xl p-6 shadow-lg shadow-orange-500/10" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+          <motion.div className="bg-black/40 backdrop-blur-sm border border-orange-500/30 rounded-2xl p-6 shadow-lg shadow-orange-500/10" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
             <div className="flex justify-between items-center mb-4 pb-2 border-b border-orange-500/30">
               <h2 className="text-xl font-semibold text-orange-400">Basic Information</h2>
               <button type="button" onClick={clearFormData} className="btn btn-xs bg-red-600 hover:bg-red-700 text-white border-none">
@@ -351,8 +397,9 @@ function CreateProblem() {
             </div>
           </motion.div>
 
+
           {/* Test Cases Card */}
-          <motion.div className="bg-black/40 backdrop-blur-sm border border-orange-500/30 rounded-2xl p-6 shadow-lg shadow-orange-500/10" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+          <motion.div className="bg-black/40 backdrop-blur-sm border border-orange-500/30 rounded-2xl p-6 shadow-lg shadow-orange-500/10" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
             <h2 className="text-xl font-semibold text-orange-400 mb-4 pb-2 border-b border-orange-500/30">Test Cases</h2>
             <div className="mb-8">
               <div className="flex justify-between items-center mb-4">
@@ -409,8 +456,9 @@ function CreateProblem() {
             </div>
           </motion.div>
 
+
           {/* Code Templates Card */}
-          <motion.div className="bg-black/40 backdrop-blur-sm border border-orange-500/30 rounded-2xl p-6 shadow-lg shadow-orange-500/10" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+          <motion.div className="bg-black/40 backdrop-blur-sm border border-orange-500/30 rounded-2xl p-6 shadow-lg shadow-orange-500/10" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
             <h2 className="text-xl font-semibold text-orange-400 mb-4 pb-2 border-b border-orange-500/30">Code Templates</h2>
             <div className="space-y-8">
               {[0, 1, 2].map((index) => (
@@ -435,7 +483,8 @@ function CreateProblem() {
             </div>
           </motion.div>
 
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} className="flex flex-col sm:flex-row gap-4">
+
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }} className="flex flex-col sm:flex-row gap-4">
             <button type="submit" className="btn bg-gradient-to-r from-orange-600 to-orange-800 hover:from-orange-700 hover:to-orange-900 border-none text-white py-3 text-lg font-semibold flex-1" disabled={isLoading}>
               {isLoading ? <><span className="loading loading-spinner"></span>Creating...</> : 'Create Problem'}
             </button>
@@ -443,7 +492,9 @@ function CreateProblem() {
         </form>
       </motion.div>
 
+
       <Footer />
+
 
       {/* Help Modal */}
       <AnimatePresence>
@@ -483,6 +534,7 @@ function CreateProblem() {
                   </div>
                 </details>
 
+
                 <details className="bg-black/30 p-3 rounded-lg border border-orange-500/20">
                   <summary className="cursor-pointer font-semibold text-orange-300">Reference Solution Code</summary>
                   <div className="mt-2 space-y-2 text-sm">
@@ -493,13 +545,16 @@ function CreateProblem() {
 {`const readline = require('readline');
 const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
 
+
 // Read input lines
 let lines = [];
 rl.on('line', (line) => lines.push(line));
 
+
 rl.on('close', () => {
     const nums = lines[0].split(' ').map(Number);
     const target = Number(lines[1]);
+
 
     // Your solution logic here
     const result = twoSum(nums, target);
@@ -508,6 +563,7 @@ rl.on('close', () => {
     console.log(JSON.stringify(result));
 });
 
+
 // The function to be tested
 function twoSum(nums, target) {
     // ... implementation
@@ -515,6 +571,7 @@ function twoSum(nums, target) {
                     </pre>
                   </div>
                 </details>
+
 
                 <div className="pt-4 border-t border-orange-500/20">
                   <h3 className="text-lg font-semibold text-orange-400 mb-2">Need a Template?</h3>
@@ -528,6 +585,7 @@ function twoSum(nums, target) {
           </motion.div>
         )}
       </AnimatePresence>
+
 
       {/* Confirmation Modal */}
       <AnimatePresence>
@@ -573,6 +631,7 @@ function twoSum(nums, target) {
         )}
       </AnimatePresence>
 
+
       {/* Success Modal */}
       <AnimatePresence>
         {isSuccessModalOpen && (
@@ -611,6 +670,7 @@ function twoSum(nums, target) {
         )}
       </AnimatePresence>
 
+
       {/* Error Modal */}
       <AnimatePresence>
         {isErrorModalOpen && (
@@ -645,5 +705,6 @@ function twoSum(nums, target) {
     </div>
   );
 }
+
 
 export default CreateProblem;
