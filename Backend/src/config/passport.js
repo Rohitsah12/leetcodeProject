@@ -7,7 +7,7 @@ passport.use(new GoogleStrategy({
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     // Fix: Use absolute URL for production
     callbackURL: process.env.NODE_ENV === 'production' 
-        ? 'https://leetcodeproject-82po.onrender.com/user/google/callback'
+        ? '/user/google/callback'
         : '/user/google/callback',
     scope: ['profile', 'email']
 }, async (accessToken, refreshToken, profile, done) => {
