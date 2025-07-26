@@ -10,11 +10,11 @@ const collegeValidate = require('../utils/collegeValidator');
 const getCookieOptions = () => ({
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',
-  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // Fixed: consistent across all
+  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-  domain: process.env.NODE_ENV === 'production' ? process.env.COOKIE_DOMAIN : undefined
+  // Remove domain setting for Render/Vercel setup
+  domain: undefined // Don't set domain for cross-origin setup
 });
-
 const register = async (req, res) => {
   try {
     validate(req.body);
@@ -128,7 +128,7 @@ const googleAuthCallback = (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000,
       domain: process.env.NODE_ENV === 'production' ? process.env.COOKIE_DOMAIN : undefined
     });
-
+res.cookie('token', token, getCookieOptions());
     req.logout((err) => {
       if (err) console.error('Session logout error:', err);
       
