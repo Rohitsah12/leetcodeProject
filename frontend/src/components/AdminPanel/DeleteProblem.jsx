@@ -2,14 +2,335 @@ import { useEffect, useState } from 'react';
 import axiosClient from '../../utils/axiosClient';
 import { motion, AnimatePresence } from 'framer-motion';
 import Navbar from '../Landing/Navbar';
+import { useNavigate } from 'react-router-dom';
+import {
+  ArrowLeft,
+  Search,
+  Trash2,
+  AlertTriangle,
+  CheckCircle,
+  X,
+  Home,
+  Lightbulb
+} from 'lucide-react';
+
+// Confirmation Modal Component
+const ConfirmationModal = ({ isOpen, onClose, onConfirm, problemTitle, isLoading }) => {
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          {/* Backdrop */}
+          <motion.div
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+          />
+
+          {/* Modal */}
+          <motion.div
+            className="relative bg-gradient-to-br from-gray-900 to-black border border-red-500/30 rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl"
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            transition={{ duration: 0.3 }}
+          >
+            {/* Decorative gradient */}
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-500 to-red-600 rounded-t-2xl" />
+
+            {/* Warning Icon */}
+            <div className="flex justify-center mb-6">
+              <motion.div
+                className="w-16 h-16 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.1, type: "spring", stiffness: 200 }}
+              >
+                <AlertTriangle className="w-8 h-8 text-white" />
+              </motion.div>
+            </div>
+
+            {/* Content */}
+            <div className="text-center">
+              <motion.h3
+                className="text-2xl font-bold text-white mb-4"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                Delete Problem
+              </motion.h3>
+
+              <motion.div
+                className="text-gray-300 mb-6 leading-relaxed"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                <p className="mb-3">Are you sure you want to delete this problem?</p>
+                <div className="bg-gray-800/50 p-3 rounded-lg border border-gray-700">
+                  <p className="text-orange-400 font-semibold text-sm break-words">
+                    "{problemTitle}"
+                  </p>
+                </div>
+                <p className="text-red-400 text-sm mt-3 font-medium">
+                  This action cannot be undone!
+                </p>
+              </motion.div>
+
+              {/* Buttons */}
+              <motion.div
+                className="flex gap-4 justify-center"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+              >
+                <button
+                  onClick={onClose}
+                  disabled={isLoading}
+                  className="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  onClick={onConfirm}
+                  disabled={isLoading}
+                  className="px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 min-w-[120px] justify-center"
+                >
+                  {isLoading ? (
+                    <>
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
+                      />
+                      Deleting...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 size={16} />
+                      Delete
+                    </>
+                  )}
+                </button>
+              </motion.div>
+            </div>
+
+            {/* Close button */}
+            <button
+              onClick={onClose}
+              disabled={isLoading}
+              className="absolute top-4 right-4 p-2 text-gray-400 hover:text-white transition-colors disabled:opacity-50"
+            >
+              <X size={20} />
+            </button>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+};
+
+// Success Modal Component
+const SuccessModal = ({ isOpen, onClose, problemTitle }) => {
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          {/* Backdrop */}
+          <motion.div
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          />
+
+          {/* Modal */}
+          <motion.div
+            className="relative bg-gradient-to-br from-green-900/90 to-green-800/90 border border-green-500/30 rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl"
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            transition={{ duration: 0.3 }}
+          >
+            {/* Decorative gradient */}
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 to-green-600 rounded-t-2xl" />
+
+            {/* Success animation */}
+            <div className="flex justify-center mb-6">
+              <motion.div
+                className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.1, type: "spring", stiffness: 200 }}
+              >
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.3 }}
+                >
+                  <CheckCircle className="w-8 h-8 text-white" />
+                </motion.div>
+              </motion.div>
+            </div>
+
+            {/* Content */}
+            <div className="text-center">
+              <motion.h3
+                className="text-2xl font-bold text-white mb-4"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                Problem Deleted Successfully!
+              </motion.h3>
+
+              <motion.div
+                className="text-green-100 mb-6 leading-relaxed"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                <p className="mb-3">The problem has been permanently deleted.</p>
+                <div className="bg-green-800/30 p-3 rounded-lg border border-green-600/30">
+                  <p className="text-green-200 font-medium text-sm break-words">
+                    "{problemTitle}"
+                  </p>
+                </div>
+              </motion.div>
+
+              <motion.button
+                onClick={onClose}
+                className="px-8 py-3 bg-white text-green-600 font-semibold rounded-lg hover:bg-green-50 transition-colors"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+              >
+                Continue
+              </motion.button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+};
+
+// Error Modal Component
+const ErrorModal = ({ isOpen, onClose, errorMessage }) => {
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          {/* Backdrop */}
+          <motion.div
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+          />
+
+          {/* Modal */}
+          <motion.div
+            className="relative bg-gradient-to-br from-red-900/90 to-red-800/90 border border-red-500/30 rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl"
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            transition={{ duration: 0.3 }}
+          >
+            {/* Decorative gradient */}
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-500 to-red-600 rounded-t-2xl" />
+
+            {/* Error icon */}
+            <div className="flex justify-center mb-6">
+              <motion.div
+                className="w-16 h-16 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.1, type: "spring", stiffness: 200 }}
+              >
+                <X className="w-8 h-8 text-white" />
+              </motion.div>
+            </div>
+
+            {/* Content */}
+            <div className="text-center">
+              <motion.h3
+                className="text-2xl font-bold text-white mb-4"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                Delete Failed
+              </motion.h3>
+
+              <motion.div
+                className="text-red-100 mb-6 leading-relaxed"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                <p className="mb-3">Failed to delete the problem.</p>
+                <div className="bg-red-800/30 p-3 rounded-lg border border-red-600/30">
+                  <p className="text-red-200 text-sm">
+                    {errorMessage || 'An unexpected error occurred. Please try again.'}
+                  </p>
+                </div>
+              </motion.div>
+
+              <motion.button
+                onClick={onClose}
+                className="px-8 py-3 bg-white text-red-600 font-semibold rounded-lg hover:bg-red-50 transition-colors"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+              >
+                Try Again
+              </motion.button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+};
 
 const DeleteProblem = () => {
+  const navigate = useNavigate();
   const [problems, setProblems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+  
+  // Modal states
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [selectedProblem, setSelectedProblem] = useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
+  
   const itemsPerPage = 15;
 
   // Fetch all problems on mount
@@ -42,16 +363,52 @@ const DeleteProblem = () => {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this problem?')) return;
+  const handleDeleteClick = (problem) => {
+    setSelectedProblem(problem);
+    setShowConfirmModal(true);
+  };
+
+  const handleConfirmedDelete = async () => {
+    if (!selectedProblem) return;
+    
+    setDeleteLoading(true);
+    setDeleteError('');
     
     try {
-      await axiosClient.delete(`/problem/delete/${id}`);
-      setProblems(problems.filter(problem => problem._id !== id));
+      await axiosClient.delete(`/problem/delete/${selectedProblem._id}`);
+      
+      // Remove from problems list
+      setProblems(problems.filter(problem => problem._id !== selectedProblem._id));
+      
+      // Close confirmation modal and show success modal
+      setShowConfirmModal(false);
+      setShowSuccessModal(true);
+      
     } catch (err) {
-      setError('Failed to delete problem');
-      console.error(err);
+      console.error('Delete error:', err);
+      setDeleteError(err.response?.data?.message || err.message || 'Failed to delete problem');
+      setShowConfirmModal(false);
+      setShowErrorModal(true);
+    } finally {
+      setDeleteLoading(false);
     }
+  };
+
+  const handleCancelDelete = () => {
+    setShowConfirmModal(false);
+    setSelectedProblem(null);
+    setDeleteError('');
+  };
+
+  const handleSuccessClose = () => {
+    setShowSuccessModal(false);
+    setSelectedProblem(null);
+  };
+
+  const handleErrorClose = () => {
+    setShowErrorModal(false);
+    setSelectedProblem(null);
+    setDeleteError('');
   };
 
   // Filter problems based on search term
@@ -63,10 +420,8 @@ const DeleteProblem = () => {
         (Array.isArray(problem.tags) 
           ? problem.tags.some(tag => tag.toLowerCase().includes(searchLower))
           : problem.tags.toLowerCase().includes(searchLower)
-      ) ||
+      )) ||
       problem.difficulty.toLowerCase().includes(searchLower)
-    )
-
     );
   });
 
@@ -141,26 +496,50 @@ const DeleteProblem = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black text-gray-100  "
-    style={{
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black text-gray-100"
+      style={{
         backgroundImage: `url('https://res.cloudinary.com/dltqzdtfh/image/upload/v1750446385/gridbg_uxjjws.png')`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
-      }}>
+      }}
+    >
       <Navbar />
-      <div className="max-w-6xl mx-auto">
-        <motion.div 
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-10 text-center"
-        >
-          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-orange-400 to-amber-500 bg-clip-text text-transparent mb-2 mt-4">
-            Problem Manager
-          </h1>
-          <p className="text-gray-400 max-w-2xl mx-auto">
-            Manage and delete coding problems. Search by title, tags, or difficulty.
-          </p>
-        </motion.div>
+      
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        {/* Header with Navigation */}
+        <div className="flex items-center gap-4 mb-8">
+          <motion.button
+            onClick={() => navigate('/admin')}
+            className="p-2 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors border border-orange-500/30"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <ArrowLeft className="w-5 h-5 text-orange-400" />
+          </motion.button>
+          
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex-1"
+          >
+            <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-red-400 to-red-600 bg-clip-text text-transparent mb-2">
+              Problem Manager
+            </h1>
+            <p className="text-gray-400 max-w-2xl">
+              Manage and delete coding problems. Search by title, tags, or difficulty.
+            </p>
+          </motion.div>
+
+          <motion.button
+            onClick={() => navigate('/admin')}
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg hover:from-orange-600 hover:to-orange-700 transition-all"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Home size={16} />
+            <span className="hidden sm:inline">Back to Admin</span>
+          </motion.button>
+        </div>
 
         {/* Search Bar */}
         <motion.div
@@ -170,10 +549,11 @@ const DeleteProblem = () => {
           className="mb-8"
         >
           <div className="relative">
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500" size={20} />
             <input
               type="text"
               placeholder="Search problems by title, tags, or difficulty..."
-              className="w-full py-3 px-6 border border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-gray-200 placeholder-gray-500"
+              className="w-full py-3 pl-12 pr-12 bg-gray-800/50 border border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-200 placeholder-gray-500 backdrop-blur-sm"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -181,23 +561,17 @@ const DeleteProblem = () => {
               {searchTerm ? (
                 <button 
                   onClick={() => setSearchTerm('')}
-                  className="p-1 rounded-full hover:bg-gray-700"
+                  className="p-1 rounded-full hover:bg-gray-700 transition-colors"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                  </svg>
+                  <X size={16} />
                 </button>
-              ) : (
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              )}
+              ) : null}
             </div>
           </div>
           
           <div className="flex justify-between items-center mt-4">
-            <div className="text-sm  px-4 py-2 rounded-lg border border-gray-700">
-              Showing <span className="text-orange-400 font-bold">{filteredProblems.length}</span> of <span className="text-amber-500 font-bold">{problems.length}</span> problems
+            <div className="text-sm px-4 py-2 rounded-lg border border-gray-700 bg-gray-800/30">
+              Showing <span className="text-red-400 font-bold">{filteredProblems.length}</span> of <span className="text-amber-500 font-bold">{problems.length}</span> problems
             </div>
             {searchTerm && (
               <motion.div 
@@ -205,7 +579,7 @@ const DeleteProblem = () => {
                 animate={{ opacity: 1 }}
                 className="text-sm text-gray-400"
               >
-                Searching for: <span className="text-orange-400">{debouncedSearchTerm}</span>
+                Searching for: <span className="text-red-400">{debouncedSearchTerm}</span>
               </motion.div>
             )}
           </div>
@@ -216,7 +590,7 @@ const DeleteProblem = () => {
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          className="bg-gray-800/30 backdrop-blur-sm rounded-xl border border-gray-700 overflow-hidden"
+          className="bg-gray-800/30 backdrop-blur-sm rounded-xl border border-gray-700 overflow-hidden shadow-2xl"
         >
           <div className="overflow-x-auto">
             <table className="table w-full">
@@ -237,7 +611,7 @@ const DeleteProblem = () => {
                         key={problem._id}
                         variants={itemVariants}
                         exit="exit"
-                        className="border-b border-gray-700/50 hover:bg-gray-800/30"
+                        className="border-b border-gray-700/50 hover:bg-gray-800/30 transition-colors"
                       >
                         <th className="text-center text-gray-400 font-normal">
                           {(currentPage - 1) * itemsPerPage + index + 1}
@@ -248,12 +622,10 @@ const DeleteProblem = () => {
                               whileHover={{ rotate: 10 }}
                               className="bg-gray-700 border border-gray-600 rounded-lg w-10 h-10 flex items-center justify-center mr-3"
                             >
-                              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                              </svg>
+                              <Lightbulb className="h-5 w-5 text-orange-500" />
                             </motion.div>
                             <div>
-                              <div className="font-medium">{problem.title}</div>
+                              <div className="font-medium text-white">{problem.title}</div>
                               <div className="text-xs text-gray-400">ID: {problem._id}</div>
                             </div>
                           </div>
@@ -289,13 +661,11 @@ const DeleteProblem = () => {
                           <motion.button 
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
-                            onClick={() => handleDelete(problem._id)}
-                            className="bg-gradient-to-r from-red-700 to-red-900 hover:from-red-600 hover:to-red-800 text-red-100 py-1.5 px-4 rounded-lg text-sm font-medium flex items-center justify-center"
+                            onClick={() => handleDeleteClick(problem)}
+                            className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white py-2 px-4 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-all shadow-lg"
                             title="Delete problem"
                           >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
+                            <Trash2 size={14} />
                             Delete
                           </motion.button>
                         </td>
@@ -305,13 +675,11 @@ const DeleteProblem = () => {
                     <motion.tr 
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      className="border-b border-gray-700/50 hover:bg-gray-800/30"
+                      className="border-b border-gray-700/50"
                     >
                       <td colSpan="5" className="text-center py-12">
                         <div className="flex flex-col items-center justify-center">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-gray-500 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
+                          <Search className="h-16 w-16 text-gray-500 mb-4" />
                           <h3 className="text-lg text-gray-400">No problems found</h3>
                           <p className="text-gray-500 mt-1">
                             {debouncedSearchTerm 
@@ -340,14 +708,12 @@ const DeleteProblem = () => {
                 className={`px-4 py-2 rounded-lg flex items-center ${
                   currentPage === 1 
                     ? 'bg-gray-800 text-gray-500 cursor-not-allowed' 
-                    : 'bg-gray-800 hover:bg-orange-900/30 text-orange-400 border border-orange-500/30'
+                    : 'bg-gray-800 hover:bg-red-900/30 text-red-400 border border-red-500/30 transition-colors'
                 }`}
                 onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
+                <ArrowLeft className="h-4 w-4 mr-1" />
                 Prev
               </button>
               
@@ -368,9 +734,9 @@ const DeleteProblem = () => {
                     key={pageNum}
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
-                    className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                    className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
                       currentPage === pageNum
-                        ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold'
+                        ? 'bg-gradient-to-r from-red-500 to-red-600 text-white font-bold shadow-lg'
                         : 'bg-gray-800 hover:bg-gray-700 text-gray-300'
                     }`}
                     onClick={() => setCurrentPage(pageNum)}
@@ -388,9 +754,9 @@ const DeleteProblem = () => {
                 <motion.button
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
-                  className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                  className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
                     currentPage === totalPages
-                      ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold'
+                      ? 'bg-gradient-to-r from-red-500 to-red-600 text-white font-bold shadow-lg'
                       : 'bg-gray-800 hover:bg-gray-700 text-gray-300'
                   }`}
                   onClick={() => setCurrentPage(totalPages)}
@@ -403,20 +769,39 @@ const DeleteProblem = () => {
                 className={`px-4 py-2 rounded-lg flex items-center ${
                   currentPage === totalPages 
                     ? 'bg-gray-800 text-gray-500 cursor-not-allowed' 
-                    : 'bg-gray-800 hover:bg-orange-900/30 text-orange-400 border border-orange-500/30'
+                    : 'bg-gray-800 hover:bg-red-900/30 text-red-400 border border-red-500/30 transition-colors'
                 }`}
                 onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                 disabled={currentPage === totalPages}
               >
                 Next
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
+                <ArrowLeft className="h-4 w-4 ml-1 rotate-180" />
               </button>
             </div>
           </motion.div>
         )}
       </div>
+
+      {/* Modals */}
+      <ConfirmationModal
+        isOpen={showConfirmModal}
+        onClose={handleCancelDelete}
+        onConfirm={handleConfirmedDelete}
+        problemTitle={selectedProblem?.title || ''}
+        isLoading={deleteLoading}
+      />
+
+      <SuccessModal
+        isOpen={showSuccessModal}
+        onClose={handleSuccessClose}
+        problemTitle={selectedProblem?.title || ''}
+      />
+
+      <ErrorModal
+        isOpen={showErrorModal}
+        onClose={handleErrorClose}
+        errorMessage={deleteError}
+      />
     </div>
   );
 };

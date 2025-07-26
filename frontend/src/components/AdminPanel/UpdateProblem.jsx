@@ -1,701 +1,1119 @@
-import { useForm, useFieldArray } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import axiosClient from '../../utils/axiosClient';
-import { useNavigate, useParams } from 'react-router-dom';
-import Navbar from '../Landing/Navbar';
-import { motion } from 'framer-motion';
-import { useEffect, useState } from 'react';
-import MDEditor from '@uiw/react-md-editor';
+// src/pages/UpdateProblem.jsx
+import React, { useState, useEffect } from "react";
+import { useForm, useFieldArray } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import axiosClient from "../../utils/axiosClient";
+import { useNavigate, useParams } from "react-router-dom";
+import Navbar from "../Landing/Navbar";
+import Footer from "../Landing/Footer";
+import { motion, AnimatePresence } from "framer-motion";
+import MDEditor from "@uiw/react-md-editor";
+import {
+  PlusCircle,
+  Trash2,
+  Tag,
+  Briefcase,
+  Lightbulb,
+  List,
+  Code,
+  Database,
+  Save,
+  ArrowLeft,
+  AlertCircle,
+  CheckCircle,
+  X,
+} from "lucide-react";
 
-// Updated Zod schema
+// Confirmation Modal Component
+const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, message, isLoading }) => {
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          {/* Backdrop */}
+          <motion.div
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+          />
+
+          {/* Modal */}
+          <motion.div
+            className="relative bg-gradient-to-br from-gray-900 to-black border border-orange-500/30 rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl"
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            transition={{ duration: 0.3 }}
+          >
+            {/* Decorative gradient */}
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-500 to-orange-600 rounded-t-2xl" />
+
+            {/* Icon */}
+            <div className="flex justify-center mb-6">
+              <motion.div
+                className="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.1, type: "spring", stiffness: 200 }}
+              >
+                <Save className="w-8 h-8 text-white" />
+              </motion.div>
+            </div>
+
+            {/* Content */}
+            <div className="text-center">
+              <motion.h3
+                className="text-2xl font-bold text-white mb-4"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                {title}
+              </motion.h3>
+
+              <motion.p
+                className="text-gray-300 mb-8 leading-relaxed"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                {message}
+              </motion.p>
+
+              {/* Buttons */}
+              <motion.div
+                className="flex gap-4 justify-center"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+              >
+                <button
+                  onClick={onClose}
+                  disabled={isLoading}
+                  className="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  onClick={onConfirm}
+                  disabled={isLoading}
+                  className="px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 min-w-[120px] justify-center"
+                >
+                  {isLoading ? (
+                    <>
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
+                      />
+                      Updating...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle size={16} />
+                      Confirm
+                    </>
+                  )}
+                </button>
+              </motion.div>
+            </div>
+
+            {/* Close button */}
+            <button
+              onClick={onClose}
+              disabled={isLoading}
+              className="absolute top-4 right-4 p-2 text-gray-400 hover:text-white transition-colors disabled:opacity-50"
+            >
+              <X size={20} />
+            </button>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+};
+
+// Success Modal Component
+const SuccessModal = ({ isOpen, onClose, title, message }) => {
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          {/* Backdrop */}
+          <motion.div
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          />
+
+          {/* Modal */}
+          <motion.div
+            className="relative bg-gradient-to-br from-green-900/90 to-green-800/90 border border-green-500/30 rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl"
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            transition={{ duration: 0.3 }}
+          >
+            {/* Decorative gradient */}
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 to-green-600 rounded-t-2xl" />
+
+            {/* Success animation */}
+            <div className="flex justify-center mb-6">
+              <motion.div
+                className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.1, type: "spring", stiffness: 200 }}
+              >
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.3 }}
+                >
+                  <CheckCircle className="w-8 h-8 text-white" />
+                </motion.div>
+              </motion.div>
+            </div>
+
+            {/* Content */}
+            <div className="text-center">
+              <motion.h3
+                className="text-2xl font-bold text-white mb-4"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                {title}
+              </motion.h3>
+
+              <motion.p
+                className="text-green-100 mb-8 leading-relaxed"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                {message}
+              </motion.p>
+
+              <motion.button
+                onClick={onClose}
+                className="px-8 py-3 bg-white text-green-600 font-semibold rounded-lg hover:bg-green-50 transition-colors"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+              >
+                Continue
+              </motion.button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+};
+
+// Zod Schema
 const problemSchema = z.object({
-  title: z.string().min(1, 'Title is required'),
-  description: z.string().min(1, 'Description is required'),
-  difficulty: z.enum(['Easy', 'Medium', 'Hard']),
-  tags: z.array(z.string().min(1, 'Tag cannot be empty')).min(1, 'At least one tag required'),
-  companies: z.array(z.string().min(1, 'Company cannot be empty')).optional(),
-  hints: z.array(z.string().min(1, 'Hint cannot be empty')).optional(),
-  constraints: z.array(z.string().min(1, 'Constraint cannot be empty')).optional(),
-  visibleTestCases: z.array(
-    z.object({
-      input: z.string().min(1, 'Input is required'),
-      output: z.string().min(1, 'Output is required'),
-      explaination: z.string().min(1, 'Explaination is required')
-    })
-  ).min(1, 'At least one visible test case required'),
-  hiddenTestCases: z.array(
-    z.object({
-      input: z.string().min(1, 'Input is required'),
-      output: z.string().min(1, 'Output is required')
-    })
-  ).min(1, 'At least one hidden test case required'),
-  startCode: z.array(
-    z.object({
-      language: z.enum(['C++', 'Java', 'JavaScript']),
-      initialCode: z.string().min(1, 'Initial code is required')
-    })
-  ).length(3, 'All three languages required'),
-  referenceSolution: z.array(
-    z.object({
-      language: z.enum(['C++', 'Java', 'JavaScript']),
-      completeCode: z.string().min(1, 'Complete code is required')
-    })
-  ).length(3, 'All three languages required')
+  title: z.string().min(1, "Title is required"),
+  description: z.string().min(1, "Description is required"),
+  difficulty: z.enum(["easy", "medium", "hard"]),
+  tags: z
+    .array(z.string().min(1, "Tag cannot be empty"))
+    .min(1, "At least one tag required"),
+  companies: z
+    .array(z.string().min(1, "Company cannot be empty"))
+    .optional()
+    .default([]),
+  hints: z
+    .array(z.string().min(1, "Hint cannot be empty"))
+    .optional()
+    .default([]),
+  constraints: z
+    .array(z.string().min(1, "Constraint cannot be empty"))
+    .optional()
+    .default([]),
+  visibleTestCases: z
+    .array(
+      z.object({
+        input: z.string().min(1, "Input is required"),
+        output: z.string().min(1, "Output is required"),
+        explaination: z.string().min(1, "Explanation is required"),
+      })
+    )
+    .min(1, "At least one visible test case required"),
+  hiddenTestCases: z
+    .array(
+      z.object({
+        input: z.string().min(1, "Input is required"),
+        output: z.string().min(1, "Output is required"),
+      })
+    )
+    .min(1, "At least one hidden test case required"),
+  startCode: z
+    .array(
+      z.object({
+        language: z.enum(["C++", "Java", "JavaScript"]),
+        initialCode: z.string().min(1, "Initial code is required"),
+      })
+    )
+    .length(3, "All three languages required"),
+  referenceSolution: z
+    .array(
+      z.object({
+        language: z.enum(["C++", "Java", "JavaScript"]),
+        completeCode: z.string().min(1, "Complete code is required"),
+      })
+    )
+    .length(3, "All three languages required"),
 });
 
-function UpdateProblem() {
+// Main Component
+export default function UpdateProblem() {
   const { problemId } = useParams();
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [markdownValue, setMarkdownValue] = useState('');
-  const [problemData, setProblemData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [markdown, setMarkdown] = useState("");
+  const [initialData, setInitialData] = useState(null);
+  const [error, setError] = useState(null);
   
-  // Fetch problem data
-  useEffect(() => {
-    const fetchProblem = async () => {
-      try {
-        const { data } = await axiosClient.get(`/problem/ProblemById/${problemId}`);
-        setProblemData(data);
-        
-        // Pre-fill form with existing data
-        reset({
-          ...data,
-          tags: data.tags || [],
-          companies: data.companies || [],
-          hints: data.hints || [],
-          constraints: data.constraints || [],
-          visibleTestCases: data.visibleTestCases || [],
-          hiddenTestCases: data.hiddenTestCases || [],
-          startCode: data.startCode || [
-            { language: 'C++', initialCode: '' },
-            { language: 'Java', initialCode: '' },
-            { language: 'JavaScript', initialCode: '' }
-          ],
-          referenceSolution: data.referenceSolution || [
-            { language: 'C++', completeCode: '' },
-            { language: 'Java', completeCode: '' },
-            { language: 'JavaScript', completeCode: '' }
-          ]
-        });
-        
-        setMarkdownValue(data.description || '');
-      } catch (err) {
-        console.error('Failed to fetch problem:', err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    fetchProblem();
-  }, [problemId]);
+  // Modal states
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [pendingFormData, setPendingFormData] = useState(null);
 
   const {
     register,
     control,
     handleSubmit,
-    formState: { errors },
-    setValue,
+    reset,
     watch,
-    reset
+    setValue,
+    formState: { errors, isValid },
   } = useForm({
     resolver: zodResolver(problemSchema),
+    mode: "onSubmit",
+    reValidateMode: "onChange",
     defaultValues: {
+      title: "",
+      description: "",
+      difficulty: "easy",
       tags: [],
       companies: [],
       hints: [],
       constraints: [],
-      visibleTestCases: [],
-      hiddenTestCases: [],
+      visibleTestCases: [{ input: "", output: "", explaination: "" }],
+      hiddenTestCases: [{ input: "", output: "" }],
       startCode: [
-        { language: 'C++', initialCode: '' },
-        { language: 'Java', initialCode: '' },
-        { language: 'JavaScript', initialCode: '' }
+        { language: "C++", initialCode: "" },
+        { language: "Java", initialCode: "" },
+        { language: "JavaScript", initialCode: "" },
       ],
       referenceSolution: [
-        { language: 'C++', completeCode: '' },
-        { language: 'Java', completeCode: '' },
-        { language: 'JavaScript', completeCode: '' }
-      ]
-    }
+        { language: "C++", completeCode: "" },
+        { language: "Java", completeCode: "" },
+        { language: "JavaScript", completeCode: "" },
+      ],
+    },
   });
 
-  // Watch all form values
-  const formData = watch();
+  // Field arrays
+  const {
+    fields: vis,
+    append: addVis,
+    remove: remVis,
+  } = useFieldArray({
+    control,
+    name: "visibleTestCases",
+  });
 
-  // Update form value when markdown changes
+  const {
+    fields: hid,
+    append: addHid,
+    remove: remHid,
+  } = useFieldArray({
+    control,
+    name: "hiddenTestCases",
+  });
+
+  // Controlled markdown → description
   useEffect(() => {
-    setValue('description', markdownValue);
-  }, [markdownValue, setValue]);
+    setValue("description", markdown);
+  }, [markdown, setValue]);
 
-  const {
-    fields: visibleFields,
-    append: appendVisible,
-    remove: removeVisible
-  } = useFieldArray({
-    control,
-    name: 'visibleTestCases'
-  });
+  // Fetch and prefill data
+  useEffect(() => {
+    async function loadProblem() {
+      if (!problemId) {
+        setError("No problem ID provided");
+        setLoading(false);
+        return;
+      }
 
-  const {
-    fields: hiddenFields,
-    append: appendHidden,
-    remove: removeHidden
-  } = useFieldArray({
-    control,
-    name: 'hiddenTestCases'
-  });
+      try {
+        setLoading(true);
+        setError(null);
 
-  const tags = watch('tags') || [];
-  const companies = watch('companies') || [];
-  const hints = watch('hints') || [];
-  const constraints = watch('constraints') || [];
+        console.log("Fetching problem with ID:", problemId);
+        const { data } = await axiosClient.get(
+          `/problem/ProblemById/${problemId}`
+        );
 
-  // Generic function to handle adding items to arrays
-  const handleAddItem = (e, fieldName) => {
-    if (e.key === 'Enter' || e.key === ',') {
+        if (!data) {
+          throw new Error("No problem data received");
+        }
+
+        setInitialData(data);
+        setMarkdown(data.description || "");
+
+        // Prepare form data with proper fallbacks
+        const formData = {
+          title: data.title || "",
+          description: data.description || "",
+          difficulty: data.difficulty || "easy",
+          tags: Array.isArray(data.tags) ? data.tags : [],
+          companies: Array.isArray(data.companies) ? data.companies : [],
+          hints: Array.isArray(data.hints) ? data.hints : [],
+          constraints: Array.isArray(data.constraints) ? data.constraints : [],
+
+          visibleTestCases:
+            Array.isArray(data.visibleTestCases) &&
+            data.visibleTestCases.length > 0
+              ? data.visibleTestCases.map((testCase) => ({
+                  input: testCase.input || "",
+                  output: testCase.output || "",
+                  explaination:
+                    testCase.explanation || testCase.explaination || "",
+                }))
+              : [{ input: "", output: "", explaination: "" }],
+
+          hiddenTestCases:
+            Array.isArray(data.hiddenTestCases) &&
+            data.hiddenTestCases.length > 0
+              ? data.hiddenTestCases.map((testCase) => ({
+                  input: testCase.input || "",
+                  output: testCase.output || "",
+                }))
+              : [{ input: "", output: "" }],
+
+          startCode:
+            Array.isArray(data.startCode) && data.startCode.length === 3
+              ? data.startCode.map((code) => ({
+                  language: code.language,
+                  initialCode: code.initialCode || "",
+                }))
+              : [
+                  {
+                    language: "C++",
+                    initialCode:
+                      data.startCode?.find((s) => s.language === "C++")
+                        ?.initialCode || "",
+                  },
+                  {
+                    language: "Java",
+                    initialCode:
+                      data.startCode?.find((s) => s.language === "Java")
+                        ?.initialCode || "",
+                  },
+                  {
+                    language: "JavaScript",
+                    initialCode:
+                      data.startCode?.find((s) => s.language === "JavaScript")
+                        ?.initialCode || "",
+                  },
+                ],
+
+          referenceSolution:
+            Array.isArray(data.referenceSolution) &&
+            data.referenceSolution.length === 3
+              ? data.referenceSolution.map((solution) => ({
+                  language: solution.language,
+                  completeCode: solution.completeCode || "",
+                }))
+              : [
+                  {
+                    language: "C++",
+                    completeCode:
+                      data.referenceSolution?.find((s) => s.language === "C++")
+                        ?.completeCode || "",
+                  },
+                  {
+                    language: "Java",
+                    completeCode:
+                      data.referenceSolution?.find((s) => s.language === "Java")
+                        ?.completeCode || "",
+                  },
+                  {
+                    language: "JavaScript",
+                    completeCode:
+                      data.referenceSolution?.find(
+                        (s) => s.language === "JavaScript"
+                      )?.completeCode || "",
+                  },
+                ],
+        };
+
+        reset(formData);
+      } catch (err) {
+        console.error("Error loading problem:", err);
+        setError(
+          `Failed to load problem: ${
+            err.response?.data?.message || err.message
+          }`
+        );
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadProblem();
+  }, [problemId, reset]);
+
+  // Generic tag-like input handler
+  function handleAdd(e, field) {
+    if (["Enter", ","].includes(e.key)) {
       e.preventDefault();
-      const newItem = e.target.value.trim();
-      if (newItem) {
-        const currentItems = watch(fieldName) || [];
-        if (!currentItems.includes(newItem)) {
-          setValue(fieldName, [...currentItems, newItem]);
-          e.target.value = '';
+      const val = e.target.value.trim();
+      if (val) {
+        const arr = watch(field) || [];
+        if (!arr.includes(val)) {
+          setValue(field, [...arr, val]);
+          e.target.value = "";
         }
       }
     }
-  };
+  }
 
-  // Generic function to remove items from arrays
-  const removeItem = (index, fieldName) => {
-    const currentItems = [...(watch(fieldName) || [])];
-    currentItems.splice(index, 1);
-    setValue(fieldName, currentItems);
-  };
+  function handleRemove(idx, field) {
+    const arr = [...(watch(field) || [])];
+    arr.splice(idx, 1);
+    setValue(field, arr);
+  }
 
-  const onSubmit = async (data) => {
-    setIsSubmitting(true);
+  // Form submission handler - show confirmation modal
+  function onSubmit(formData) {
+    setPendingFormData(formData);
+    setShowConfirmModal(true);
+  }
+
+  // Actual submission after confirmation
+  async function handleConfirmedSubmit() {
+    if (!pendingFormData || submitting) return;
+
+    setSubmitting(true);
+    setError(null);
+
     try {
-      await axiosClient.put(`/problem/update/${problemId}`, data);
-      alert('Problem updated successfully!');
-      navigate('/admin');
-    } catch (error) {
-      alert(`Error: ${error.response?.data?.message || error.message}`);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+      console.log("Submitting form data:", pendingFormData);
 
-  if (isLoading) {
+      const cleanData = {
+        ...pendingFormData,
+        companies: pendingFormData.companies || [],
+        hints: pendingFormData.hints || [],
+        constraints: pendingFormData.constraints || [],
+      };
+
+      console.log("Sending update request to:", `/problem/update/${problemId}`);
+
+      const response = await axiosClient.put(
+        `/problem/update/${problemId}`,
+        cleanData
+      );
+
+      console.log("Update response:", response.data);
+
+      // Close confirmation modal and show success modal
+      setShowConfirmModal(false);
+      setShowSuccessModal(true);
+      
+    } catch (err) {
+      console.error("Error updating problem:", err);
+      const errorMessage =
+        err.response?.data?.message ||
+        err.message ||
+        "Failed to update problem";
+      setError(errorMessage);
+      setShowConfirmModal(false);
+    } finally {
+      setSubmitting(false);
+      setPendingFormData(null);
+    }
+  }
+
+  // Handle success modal close
+  function handleSuccessClose() {
+    setShowSuccessModal(false);
+    navigate("/admin");
+  }
+
+  // Handle cancel confirmation
+  function handleCancelConfirmation() {
+    setShowConfirmModal(false);
+    setPendingFormData(null);
+  }
+
+  // Loading state
+  if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen bg-gray-900">
-        <div className="flex flex-col items-center">
+      <div className="flex items-center justify-center h-screen bg-gray-900">
+        <div className="text-center">
           <motion.div
-            animate={{ 
-              rotate: 360,
-              scale: [1, 1.2, 1]
-            }}
-            transition={{ 
-              duration: 1.5, 
-              repeat: Infinity,
-              ease: "easeInOut"
-            }}
-            className="w-20 h-20 border-4 border-orange-500 border-t-transparent rounded-full"
-          ></motion.div>
-          <p className="mt-4 text-orange-400">Loading problem data...</p>
+            animate={{ rotate: 360 }}
+            transition={{ ease: "linear", duration: 1, repeat: Infinity }}
+            className="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full mx-auto mb-4"
+          />
+          <p className="text-white">Loading problem data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error && !initialData) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-gray-900">
+        <div className="text-center">
+          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <p className="text-white mb-4">{error}</p>
+          <button
+            onClick={() => navigate("/admin")}
+            className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700"
+          >
+            Go Back to Admin
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div 
-      className="min-h-screen"
+    <div
+      className="min-h-screen bg-black text-white"
       style={{
-        backgroundImage: `url('https://res.cloudinary.com/dltqzdtfh/image/upload/v1750446385/gridbg_uxjjws.png')`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
+        backgroundImage:
+          "url('https://res.cloudinary.com/dltqzdtfh/image/upload/v1750446385/gridbg_uxjjws.png')",
+        backgroundSize: "cover",
       }}
     >
       <Navbar />
-      
-      <motion.div
+
+      <motion.main
+        className="container mx-auto p-6 max-w-4xl"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="container mx-auto px-4 py-8 max-w-4xl"
       >
-        <div className="text-center mb-8">
-          <motion.h1 
-            className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-orange-400 to-orange-600 bg-clip-text text-transparent mb-2"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.1 }}
+        {/* Header */}
+        <div className="flex items-center gap-4 mb-8">
+          <button
+            onClick={() => navigate("/admin")}
+            className="p-2 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors"
           >
-            Update Problem: {problemData?.title || 'Loading...'}
-          </motion.h1>
-          <p className="text-neutral-300">
-            Modify an existing coding challenge
-          </p>
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-orange-400 to-orange-600">
+            Update Problem: {initialData?.title || "Loading..."}
+          </h1>
         </div>
 
+        {/* Error display */}
+        {error && (
+          <motion.div
+            className="bg-red-900/50 border border-red-500 rounded-lg p-4 mb-6"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <div className="flex items-center gap-2">
+              <AlertCircle className="w-5 h-5 text-red-400" />
+              <span className="text-red-300">{error}</span>
+            </div>
+          </motion.div>
+        )}
+
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-          {/* Basic Information Card */}
-          <motion.div 
-            className="bg-black/40 backdrop-blur-sm border border-orange-500/30 rounded-2xl p-6 shadow-lg shadow-orange-500/10"
+          {/* ---- BASIC INFO ---- */}
+          <motion.section
+            className="bg-gray-800/50 backdrop-blur rounded-2xl p-6 border border-orange-500/30"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            <h2 className="text-xl font-semibold mb-4 text-orange-400 flex items-center gap-2">
+              <Code className="w-5 h-5" />
+              Basic Information
+            </h2>
+
+            <div className="space-y-4">
+              <label className="block">
+                <span className="text-gray-300 font-medium">Title *</span>
+                <input
+                  {...register("title")}
+                  className={`w-full p-3 mt-1 bg-gray-900 rounded-lg border transition-colors ${
+                    errors.title
+                      ? "border-red-500 focus:border-red-400"
+                      : "border-gray-700 focus:border-orange-500"
+                  }`}
+                  placeholder="Enter problem title..."
+                />
+                {errors.title && (
+                  <p className="text-red-400 text-sm mt-1">
+                    {errors.title.message}
+                  </p>
+                )}
+              </label>
+
+              <label className="block">
+                <span className="text-gray-300 font-medium">Description *</span>
+                <div className="mt-1">
+                  <MDEditor
+                    value={markdown}
+                    onChange={setMarkdown}
+                    height={250}
+                    preview="live"
+                    data-color-mode="dark"
+                    textareaProps={{
+                      placeholder:
+                        "Enter problem description using Markdown...",
+                    }}
+                  />
+                </div>
+                {errors.description && (
+                  <p className="text-red-400 text-sm mt-1">
+                    {errors.description.message}
+                  </p>
+                )}
+              </label>
+
+              <label className="block">
+                <span className="text-gray-300 font-medium">Difficulty *</span>
+                <select
+                  {...register("difficulty")}
+                  className={`w-full p-3 mt-1 bg-gray-900 rounded-lg border transition-colors ${
+                    errors.difficulty ? "border-red-500" : "border-gray-700"
+                  }`}
+                >
+                  <option value="easy">Easy</option>
+                  <option value="medium">Medium</option>
+                  <option value="hard">Hard</option>
+                </select>
+                {errors.difficulty && (
+                  <p className="text-red-400 text-sm mt-1">
+                    {errors.difficulty.message}
+                  </p>
+                )}
+              </label>
+            </div>
+          </motion.section>
+
+          {/* ---- TAGS & META ---- */}
+          <motion.section
+            className="bg-gray-800/50 backdrop-blur rounded-2xl p-6 border border-orange-500/30"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
           >
-            <h2 className="text-xl font-semibold text-orange-400 mb-4 pb-2 border-b border-orange-500/30">
-              Basic Information
+            <h2 className="text-xl font-semibold mb-4 text-orange-400">
+              Tags & Metadata
             </h2>
-            
-            <div className="space-y-5">
-              <div className="form-control">
-                <label className="label">
-                  <span className="label-text text-neutral-300">Title</span>
-                </label>
-                <input
-                  {...register('title')}
-                  className={`input bg-black/30 border border-orange-500/30 text-neutral-200 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 ${
-                    errors.title && 'border-red-500'
-                  }`}
-                />
-                {errors.title && (
-                  <span className="text-red-400 text-sm mt-1">{errors.title.message}</span>
-                )}
-              </div>
 
-              <div className="form-control">
-                <label className="label">
-                  <span className="label-text text-neutral-300">Description</span>
-                </label>
-                
-                <div className={`relative rounded-lg overflow-hidden ${
-                  errors.description ? 'border border-red-500' : ''
-                }`}>
-                  <div className="bg-black/30 border border-orange-500/30 rounded-lg overflow-hidden">
-                    <MDEditor
-                      value={markdownValue}
-                      onChange={setMarkdownValue}
-                      height={300}
-                      preview="live"
-                      data-color-mode="dark"
-                      style={{ 
-                        backgroundColor: 'rgba(0, 0, 0, 0.3)',
-                        border: 'none'
-                      }}
-                      textareaProps={{
-                        placeholder: 'Enter problem description using Markdown...'
-                      }}
-                      previewOptions={{
-                        components: {
-                          code: ({ inline, children, className, ...props }) => {
-                            if (inline) {
-                              return <code className="bg-orange-900/30 text-orange-300 px-1 rounded">{children}</code>;
-                            }
-                            return (
-                              <pre className="bg-black/50 p-4 rounded-lg my-2 overflow-x-auto">
-                                <code className={className} {...props}>
-                                  {children}
-                                </code>
-                              </pre>
-                            );
-                          }
-                        }
-                      }}
-                    />
-                  </div>
-                  
-                  {errors.description && (
-                    <span className="text-red-400 text-sm mt-1 block">
-                      {errors.description.message}
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div className="form-control">
-                  <label className="label">
-                    <span className="label-text text-neutral-300">Difficulty</span>
-                  </label>
-                  <select
-                    {...register('difficulty')}
-                    className={`select bg-black/30 border border-orange-500/30 text-neutral-200 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 ${
-                      errors.difficulty && 'border-red-500'
+            {[
+              {
+                name: "tags",
+                icon: <Tag size={18} className="text-orange-400" />,
+                required: true,
+              },
+              {
+                name: "companies",
+                icon: <Briefcase size={18} className="text-indigo-400" />,
+                required: false,
+              },
+              {
+                name: "hints",
+                icon: <Lightbulb size={18} className="text-yellow-400" />,
+                required: false,
+              },
+              {
+                name: "constraints",
+                icon: <List size={18} className="text-red-400" />,
+                required: false,
+              },
+            ].map(({ name, icon, required }) => {
+              const arr = watch(name) || [];
+              const err = errors[name]?.message;
+              return (
+                <div key={name} className="mb-6">
+                  <span className="flex items-center gap-2 text-gray-300 mb-2 font-medium">
+                    {icon}
+                    {name.charAt(0).toUpperCase() + name.slice(1)}
+                    {required && <span className="text-red-400">*</span>}
+                  </span>
+                  <div
+                    className={`flex flex-wrap gap-2 p-3 bg-gray-900 rounded-lg border min-h-[50px] transition-colors ${
+                      err
+                        ? "border-red-500"
+                        : "border-gray-700 focus-within:border-orange-500"
                     }`}
                   >
-                    <option value="easy" className="bg-black text-green-400">Easy</option>
-                    <option value="medium" className="bg-black text-yellow-400">Medium</option>
-                    <option value="hard" className="bg-black text-red-400">Hard</option>
-                  </select>
-                </div>
-
-                <div className="form-control">
-                  <label className="label">
-                    <span className="label-text text-neutral-300">Tags</span>
-                  </label>
-                  <div className={`bg-black/30 border ${
-                    errors.tags ? 'border-red-500' : 'border-orange-500/30'
-                  } rounded-lg p-2`}>
-                    <div className="flex flex-wrap gap-2 mb-2">
-                      {tags.map((tag, index) => (
-                        <span 
-                          key={index}
-                          className="flex items-center bg-orange-500/20 text-orange-300 px-2 py-1 rounded-md text-sm"
+                    {arr.map((v, i) => (
+                      <motion.span
+                        key={i}
+                        className="flex items-center gap-1 bg-orange-600/20 text-orange-300 px-3 py-1 rounded-full text-sm"
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.8 }}
+                      >
+                        {v}
+                        <button
+                          type="button"
+                          onClick={() => handleRemove(i, name)}
+                          className="ml-1 hover:text-red-300 transition-colors"
                         >
-                          {tag}
-                          <button 
-                            type="button"
-                            onClick={() => removeItem(index, 'tags')}
-                            className="ml-1 text-orange-500 hover:text-orange-300"
-                          >
-                            &times;
-                          </button>
-                        </span>
-                      ))}
-                    </div>
+                          ×
+                        </button>
+                      </motion.span>
+                    ))}
                     <input
-                      type="text"
-                      placeholder="Add tags (press Enter or comma)"
-                      onKeyDown={(e) => handleAddItem(e, 'tags')}
-                      className="input bg-transparent border-0 p-0 h-8 text-neutral-200 w-full focus:outline-none"
+                      placeholder={`Add ${name}... (Press Enter or comma)`}
+                      className="flex-1 min-w-[200px] bg-transparent outline-none text-gray-200 placeholder-gray-500"
+                      onKeyDown={(e) => handleAdd(e, name)}
                     />
                   </div>
-                  {errors.tags && (
-                    <span className="text-red-400 text-sm mt-1">{errors.tags.message}</span>
-                  )}
+                  {err && <p className="text-red-400 text-sm mt-1">{err}</p>}
                 </div>
-              </div>
-              
-              {/* Companies */}
-              <div className="form-control">
-                <label className="label">
-                  <span className="label-text text-neutral-300">Companies</span>
-                </label>
-                <div className="bg-black/30 border border-orange-500/30 rounded-lg p-2">
-                  <div className="flex flex-wrap gap-2 mb-2">
-                    {companies.map((company, index) => (
-                      <span 
-                        key={index}
-                        className="flex items-center bg-purple-500/20 text-purple-300 px-2 py-1 rounded-md text-sm"
-                      >
-                        {company}
-                        <button 
-                          type="button"
-                          onClick={() => removeItem(index, 'companies')}
-                          className="ml-1 text-purple-500 hover:text-purple-300"
-                          aria-label={`Remove ${company}`}
-                        >
-                          &times;
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                  <input
-                    type="text"
-                    placeholder="Add companies (press Enter or comma)"
-                    onKeyDown={(e) => handleAddItem(e, 'companies')}
-                    className="input bg-transparent border-0 p-0 h-8 text-neutral-200 w-full focus:outline-none"
-                  />
-                </div>
-              </div>
-              
-              {/* Hints */}
-              <div className="form-control">
-                <label className="label">
-                  <span className="label-text text-neutral-300">Hints</span>
-                </label>
-                <div className="bg-black/30 border border-orange-500/30 rounded-lg p-2">
-                  <div className="flex flex-wrap gap-2 mb-2">
-                    {hints.map((hint, index) => (
-                      <span 
-                        key={index}
-                        className="flex items-center bg-blue-500/20 text-blue-300 px-2 py-1 rounded-md text-sm"
-                      >
-                        {hint}
-                        <button 
-                          type="button"
-                          onClick={() => removeItem(index, 'hints')}
-                          className="ml-1 text-blue-500 hover:text-blue-300"
-                          aria-label={`Remove ${hint}`}
-                        >
-                          &times;
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                  <input
-                    type="text"
-                    placeholder="Add hints (press Enter or comma)"
-                    onKeyDown={(e) => handleAddItem(e, 'hints')}
-                    className="input bg-transparent border-0 p-0 h-8 text-neutral-200 w-full focus:outline-none"
-                  />
-                </div>
-              </div>
-              
-              {/* Constraints */}
-              <div className="form-control">
-                <label className="label">
-                  <span className="label-text text-neutral-300">Constraints</span>
-                </label>
-                <div className="bg-black/30 border border-orange-500/30 rounded-lg p-2">
-                  <div className="flex flex-wrap gap-2 mb-2">
-                    {constraints.map((constraint, index) => (
-                      <span 
-                        key={index}
-                        className="flex items-center bg-green-500/20 text-green-300 px-2 py-1 rounded-md text-sm"
-                      >
-                        {constraint}
-                        <button 
-                          type="button"
-                          onClick={() => removeItem(index, 'constraints')}
-                          className="ml-1 text-green-500 hover:text-green-300"
-                          aria-label={`Remove ${constraint}`}
-                        >
-                          &times;
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                  <input
-                    type="text"
-                    placeholder="Add constraints (press Enter or comma)"
-                    onKeyDown={(e) => handleAddItem(e, 'constraints')}
-                    className="input bg-transparent border-0 p-0 h-8 text-neutral-200 w-full focus:outline-none"
-                  />
-                </div>
-              </div>
-            </div>
-          </motion.div>
+              );
+            })}
+          </motion.section>
 
-          {/* Test Cases Card */}
-          <motion.div 
-            className="bg-black/40 backdrop-blur-sm border border-orange-500/30 rounded-2xl p-6 shadow-lg shadow-orange-500/10"
+          {/* ---- TEST CASES ---- */}
+          <motion.section
+            className="bg-gray-800/50 backdrop-blur rounded-2xl p-6 border border-orange-500/30"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
           >
-            <h2 className="text-xl font-semibold text-orange-400 mb-4 pb-2 border-b border-orange-500/30">
+            <h2 className="text-xl font-semibold mb-6 text-orange-400">
               Test Cases
             </h2>
-            
+
             {/* Visible Test Cases */}
             <div className="mb-8">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="font-medium text-neutral-300">Visible Test Cases</h3>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Code size={18} className="text-green-400" />
+                  <span className="text-gray-300 font-medium">
+                    Visible Test Cases
+                  </span>
+                  <span className="text-red-400">*</span>
+                  <span className="text-sm text-gray-500">
+                    ({vis.length} cases)
+                  </span>
+                </div>
                 <button
                   type="button"
-                  onClick={() => appendVisible({ input: '', output: '', explaination: '' })}
-                  className="btn bg-orange-600 hover:bg-orange-700 border-none text-white"
+                  onClick={() =>
+                    addVis({ input: "", output: "", explaination: "" })
+                  }
+                  className="flex items-center gap-2 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
                 >
-                  Add Visible Case
+                  <PlusCircle size={16} />
+                  Add Case
                 </button>
               </div>
-              
+
               <div className="space-y-4">
-                {visibleFields.map((field, index) => (
-                  <div 
-                    key={field.problemId} 
-                    className="bg-black/30 border border-orange-500/30 p-4 rounded-lg space-y-3"
+                {vis.map((field, i) => (
+                  <motion.div
+                    key={field.id}
+                    className="bg-gray-900/50 p-4 rounded-lg border border-gray-700"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
                   >
-                    <div className="flex justify-end">
-                      <button
-                        type="button"
-                        onClick={() => removeVisible(index)}
-                        className="btn btn-xs bg-red-600 hover:bg-red-700 border-none text-white"
-                      >
-                        Remove
-                      </button>
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm text-neutral-400 mb-1">Input</label>
-                      <input
-                        {...register(`visibleTestCases.${index}.input`)}
-                        className="input bg-black/40 border border-orange-500/30 text-neutral-200 w-full"
-                      />
-                      {errors.visibleTestCases?.[index]?.input && (
-                        <span className="text-red-400 text-sm">{errors.visibleTestCases[index].input.message}</span>
+                    <div className="flex justify-between items-center mb-3">
+                      <h4 className="text-sm font-medium text-gray-400">
+                        Visible Test Case #{i + 1}
+                      </h4>
+                      {vis.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => remVis(i)}
+                          className="flex items-center gap-1 text-red-400 hover:text-red-300 text-sm"
+                        >
+                          <Trash2 size={14} />
+                          Remove
+                        </button>
                       )}
                     </div>
-                    
-                    <div>
-                      <label className="block text-sm text-neutral-400 mb-1">Output</label>
-                      <input
-                        {...register(`visibleTestCases.${index}.output`)}
-                        className="input bg-black/40 border border-orange-500/30 text-neutral-200 w-full"
-                      />
-                      {errors.visibleTestCases?.[index]?.output && (
-                        <span className="text-red-400 text-sm">{errors.visibleTestCases[index].output.message}</span>
-                      )}
+
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-sm text-gray-400 mb-1">
+                          Input
+                        </label>
+                        <textarea
+                          {...register(`visibleTestCases.${i}.input`)}
+                          placeholder="Enter input..."
+                          className="w-full p-2 bg-gray-800 rounded border border-gray-600 text-sm font-mono"
+                          rows={3}
+                        />
+                        {errors.visibleTestCases?.[i]?.input && (
+                          <p className="text-red-400 text-xs mt-1">
+                            {errors.visibleTestCases[i].input.message}
+                          </p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="block text-sm text-gray-400 mb-1">
+                          Output
+                        </label>
+                        <textarea
+                          {...register(`visibleTestCases.${i}.output`)}
+                          placeholder="Expected output..."
+                          className="w-full p-2 bg-gray-800 rounded border border-gray-600 text-sm font-mono"
+                          rows={3}
+                        />
+                        {errors.visibleTestCases?.[i]?.output && (
+                          <p className="text-red-400 text-xs mt-1">
+                            {errors.visibleTestCases[i].output.message}
+                          </p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="block text-sm text-gray-400 mb-1">
+                          Explanation
+                        </label>
+                        <textarea
+                          {...register(`visibleTestCases.${i}.explaination`)}
+                          placeholder="Explain the test case..."
+                          className="w-full p-2 bg-gray-800 rounded border border-gray-600 text-sm"
+                          rows={3}
+                        />
+                        {errors.visibleTestCases?.[i]?.explaination && (
+                          <p className="text-red-400 text-xs mt-1">
+                            {errors.visibleTestCases[i].explaination.message}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                    
-                    <div>
-                      <label className="block text-sm text-neutral-400 mb-1">Explaination</label>
-                      <textarea
-                        {...register(`visibleTestCases.${index}.explaination`)}
-                        className="textarea bg-black/40 border border-orange-500/30 text-neutral-200 w-full"
-                      />
-                      {errors.visibleTestCases?.[index]?.explaination && (
-                        <span className="text-red-400 text-sm">{errors.visibleTestCases[index].explaination.message}</span>
-                      )}
-                    </div>
-                  </div>
+                  </motion.div>
                 ))}
-                {errors.visibleTestCases && (
-                  <span className="text-red-400 text-sm">{errors.visibleTestCases.message}</span>
-                )}
               </div>
             </div>
 
             {/* Hidden Test Cases */}
             <div>
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="font-medium text-neutral-300">Hidden Test Cases</h3>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Database size={18} className="text-red-400" />
+                  <span className="text-gray-300 font-medium">
+                    Hidden Test Cases
+                  </span>
+                  <span className="text-red-400">*</span>
+                  <span className="text-sm text-gray-500">
+                    ({hid.length} cases)
+                  </span>
+                </div>
                 <button
                   type="button"
-                  onClick={() => appendHidden({ input: '', output: '' })}
-                  className="btn bg-orange-600 hover:bg-orange-700 border-none text-white"
+                  onClick={() => addHid({ input: "", output: "" })}
+                  className="flex items-center gap-2 px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
                 >
-                  Add Hidden Case
+                  <PlusCircle size={16} />
+                  Add Case
                 </button>
               </div>
-              
+
               <div className="space-y-4">
-                {hiddenFields.map((field, index) => (
-                  <div 
-                    key={field.problemId} 
-                    className="bg-black/30 border border-orange-500/30 p-4 rounded-lg space-y-3"
+                {hid.map((field, i) => (
+                  <motion.div
+                    key={field.id}
+                    className="bg-gray-900/50 p-4 rounded-lg border border-gray-700"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
                   >
-                    <div className="flex justify-end">
-                      <button
-                        type="button"
-                        onClick={() => removeHidden(index)}
-                        className="btn btn-xs bg-red-600 hover:bg-red-700 border-none text-white"
-                      >
-                        Remove
-                      </button>
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm text-neutral-400 mb-1">Input</label>
-                      <input
-                        {...register(`hiddenTestCases.${index}.input`)}
-                        className="input bg-black/40 border border-orange-500/30 text-neutral-200 w-full"
-                      />
-                      {errors.hiddenTestCases?.[index]?.input && (
-                        <span className="text-red-400 text-sm">{errors.hiddenTestCases[index].input.message}</span>
+                    <div className="flex justify-between items-center mb-3">
+                      <h4 className="text-sm font-medium text-gray-400">
+                        Hidden Test Case #{i + 1}
+                      </h4>
+                      {hid.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => remHid(i)}
+                          className="flex items-center gap-1 text-red-400 hover:text-red-300 text-sm"
+                        >
+                          <Trash2 size={14} />
+                          Remove
+                        </button>
                       )}
                     </div>
-                    
-                    <div>
-                      <label className="block text-sm text-neutral-400 mb-1">Output</label>
-                      <input
-                        {...register(`hiddenTestCases.${index}.output`)}
-                        className="input bg-black/40 border border-orange-500/30 text-neutral-200 w-full"
-                      />
-                      {errors.hiddenTestCases?.[index]?.output && (
-                        <span className="text-red-400 text-sm">{errors.hiddenTestCases[index].output.message}</span>
-                      )}
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm text-gray-400 mb-1">
+                          Input
+                        </label>
+                        <textarea
+                          {...register(`hiddenTestCases.${i}.input`)}
+                          placeholder="Enter input..."
+                          className="w-full p-2 bg-gray-800 rounded border border-gray-600 text-sm font-mono"
+                          rows={3}
+                        />
+                        {errors.hiddenTestCases?.[i]?.input && (
+                          <p className="text-red-400 text-xs mt-1">
+                            {errors.hiddenTestCases[i].input.message}
+                          </p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="block text-sm text-gray-400 mb-1">
+                          Output
+                        </label>
+                        <textarea
+                          {...register(`hiddenTestCases.${i}.output`)}
+                          placeholder="Expected output..."
+                          className="w-full p-2 bg-gray-800 rounded border border-gray-600 text-sm font-mono"
+                          rows={3}
+                        />
+                        {errors.hiddenTestCases?.[i]?.output && (
+                          <p className="text-red-400 text-xs mt-1">
+                            {errors.hiddenTestCases[i].output.message}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
-                {errors.hiddenTestCases && (
-                  <span className="text-red-400 text-sm">{errors.hiddenTestCases.message}</span>
-                )}
               </div>
             </div>
-          </motion.div>
+          </motion.section>
 
-          {/* Code Templates Card */}
-          <motion.div 
-            className="bg-black/40 backdrop-blur-sm border border-orange-500/30 rounded-2xl p-6 shadow-lg shadow-orange-500/10"
+          {/* ---- CODE TEMPLATES ---- */}
+          <motion.section
+            className="bg-gray-800/50 backdrop-blur rounded-2xl p-6 border border-orange-500/30"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
           >
-            <h2 className="text-xl font-semibold text-orange-400 mb-4 pb-2 border-b border-orange-500/30">
+            <h2 className="text-xl font-semibold mb-6 text-orange-400">
               Code Templates
             </h2>
-            
-            <div className="space-y-8">
-              {[0, 1, 2].map((index) => (
-                <div key={index} className="space-y-5">
-                  <h3 className="font-medium text-neutral-300 text-lg">
-                    {index === 0 ? 'C++' : index === 1 ? 'Java' : 'JavaScript'}
-                  </h3>
-                  
-                  <div>
-                    <label className="block text-sm text-neutral-400 mb-1">Initial Code</label>
-                    <div className="bg-black/40 border border-orange-500/30 rounded-lg p-3">
-                      <textarea
-                        {...register(`startCode.${index}.initialCode`)}
-                        className="w-full bg-transparent text-neutral-200 font-mono text-sm focus:outline-none"
-                        rows={6}
-                      />
-                      {errors.startCode?.[index]?.initialCode && (
-                        <span className="text-red-400 text-sm">{errors.startCode[index].initialCode.message}</span>
-                      )}
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm text-neutral-400 mb-1">Reference Solution</label>
-                    <div className="bg-black/40 border border-orange-500/30 rounded-lg p-3">
-                      <textarea
-                        {...register(`referenceSolution.${index}.completeCode`)}
-                        className="w-full bg-transparent text-neutral-200 font-mono text-sm focus:outline-none"
-                        rows={6}
-                      />
-                      {errors.referenceSolution?.[index]?.completeCode && (
-                        <span className="text-red-400 text-sm">{errors.referenceSolution[index].completeCode.message}</span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </motion.div>
 
+            <div className="space-y-8">
+              {/* Start Code */}
+              <div>
+                <h3 className="text-lg font-medium mb-4 text-gray-300">
+                  Initial Code Templates
+                </h3>
+                {watch("startCode")?.map((_, i) => (
+                  <div key={i} className="mb-6">
+                    <h4 className="text-md font-medium mb-2 text-gray-400">
+                      {watch(`startCode.${i}.language`)}
+                    </h4>
+                    <textarea
+                      {...register(`startCode.${i}.initialCode`)}
+                      rows={6}
+                      className="w-full bg-gray-900 p-3 rounded-lg border border-gray-700 placeholder-gray-500 font-mono text-sm focus:border-orange-500 transition-colors"
+                      placeholder={`Enter initial ${watch(`startCode.${i}.language`)} code template...`}
+                    />
+                    {errors.startCode?.[i]?.initialCode && (
+                      <p className="text-red-400 text-sm mt-1">
+                        {errors.startCode[i].initialCode.message}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {/* Reference Solutions */}
+              <div>
+                <h3 className="text-lg font-medium mb-4 text-gray-300">
+                  Reference Solutions
+                </h3>
+                {watch("referenceSolution")?.map((_, i) => (
+                  <div key={i} className="mb-6">
+                    <h4 className="text-md font-medium mb-2 text-gray-400">
+                      {watch(`referenceSolution.${i}.language`)}
+                    </h4>
+                    <textarea
+                      {...register(`referenceSolution.${i}.completeCode`)}
+                      rows={8}
+                      className="w-full bg-gray-900 p-3 rounded-lg border border-gray-700 placeholder-gray-500 font-mono text-sm focus:border-orange-500 transition-colors"
+                      placeholder={`Enter complete ${watch(`referenceSolution.${i}.language`)} solution...`}
+                    />
+                    {errors.referenceSolution?.[i]?.completeCode && (
+                      <p className="text-red-400 text-sm mt-1">
+                        {errors.referenceSolution[i].completeCode.message}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </motion.section>
+
+          {/* ---- SUBMIT SECTION ---- */}
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
+            className="flex flex-col sm:flex-row gap-4 justify-center"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
-            className="flex flex-col sm:flex-row gap-4"
           >
-            <button 
+            <button
               type="button"
-              onClick={() => navigate(-1)}
-              className="btn bg-gray-700 hover:bg-gray-600 text-white py-3 text-lg font-semibold"
+              onClick={() => navigate("/admin")}
+              disabled={submitting}
+              className="px-6 py-3 bg-gray-700 text-white font-semibold rounded-lg hover:bg-gray-600 transition-colors disabled:opacity-50"
             >
               Cancel
             </button>
-            
-            <button 
-              type="submit" 
-              className="btn bg-gradient-to-r from-green-600 to-emerald-800 hover:from-green-700 hover:to-emerald-900 border-none text-white py-3 text-lg font-semibold flex-1"
-              disabled={isSubmitting}
+
+            <button
+              type="submit"
+              disabled={submitting || Object.keys(errors).length > 0}
+              className="px-8 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold rounded-lg shadow-lg hover:from-orange-600 hover:to-orange-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
-              {isSubmitting ? (
-                <>
-                  <span className="loading loading-spinner"></span>
-                  Updating...
-                </>
-              ) : 'Update Problem'}
+              <Save size={16} />
+              Update Problem
             </button>
           </motion.div>
         </form>
-      </motion.div>
+      </motion.main>
 
-      <div className='border-t border-orange-500/30 text-center p-4 mt-8 text-neutral-400'>
-        <span>Copyright © 2025</span>
-      </div>
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showConfirmModal}
+        onClose={handleCancelConfirmation}
+        onConfirm={handleConfirmedSubmit}
+        title="Confirm Update"
+        message={`Are you sure you want to update "${initialData?.title}"? This action will modify the existing problem with your changes.`}
+        isLoading={submitting}
+      />
+
+      {/* Success Modal */}
+      <SuccessModal
+        isOpen={showSuccessModal}
+        onClose={handleSuccessClose}
+        title="Problem Updated Successfully!"
+        message="Your changes have been saved and the problem has been updated successfully."
+      />
+
+      <Footer />
     </div>
   );
 }
-
-export default UpdateProblem;

@@ -3,6 +3,7 @@ import { Plus, Edit, Trash2, Video } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import Navbar from '../components/Landing/Navbar';
 import { motion, AnimatePresence } from 'framer-motion';
+import Footer from '../components/Landing/Footer';
 
 // Aceternity-style Card Hover Effect Components
 const HoverEffect = ({ items, className = "" }) => {
@@ -153,10 +154,7 @@ function Admin() {
         <HoverEffect items={adminOptions} />
       </div>
       
-      <div className='border border-t-[orange] text-center p-2'>
-        <span >Copywrite @ 2025</span>
-
-      </div>
+      <Footer />
       
     </div>
   );

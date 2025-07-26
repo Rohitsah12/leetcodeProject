@@ -94,61 +94,132 @@ const createProblem = async (req, res) => {
 };
 
 
+// controllers/problemController.js
 const updateProblem = async (req, res) => {
- 
-  
-  const { id } = req.params;
-  const { 
-    title, 
-    description, 
-    difficulty, 
-    tags,
-    companies,
-    hints,    
-    constraints,
-    visibleTestCases, 
-    hiddenTestCases, 
-    startCode,
-    referenceSolution 
-  } = req.body;
-
-  console.log(title);
-  
-
   try {
+    const { id } = req.params;
+    
     if (!id) {
-      return res.status(400).send("Missing ID Field");
+      return res.status(400).json({ 
+        success: false, 
+        message: "Problem ID is required" 
+      });
     }
 
-    const DsaProblem = await Problem.findById(id);
-    if (!DsaProblem) {
-      return res.status(404).send("ID is not present in server");
+    // Validate that the problem exists
+    const existingProblem = await Problem.findById(id);
+    if (!existingProblem) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "Problem not found" 
+      });
     }
 
-    // Update all fields including companies, hints, constraints
+    const { 
+      title, 
+      description, 
+      difficulty, 
+      tags,
+      companies,
+      hints,    
+      constraints,
+      visibleTestCases, 
+      hiddenTestCases, 
+      startCode,
+      referenceSolution 
+    } = req.body;
+
+    // Validate required fields
+    if (!title?.trim()) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Title is required" 
+      });
+    }
+
+    if (!description?.trim()) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Description is required" 
+      });
+    }
+
+    if (!visibleTestCases || !Array.isArray(visibleTestCases) || visibleTestCases.length === 0) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "At least one visible test case is required" 
+      });
+    }
+
+    if (!hiddenTestCases || !Array.isArray(hiddenTestCases) || hiddenTestCases.length === 0) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "At least one hidden test case is required" 
+      });
+    }
+
+    console.log('Updating problem with ID:', id);
+    console.log('Update data:', { title, difficulty, tags: tags?.length });
+
+    // Update the problem
     const updatedProblem = await Problem.findByIdAndUpdate(
       id,
       {
-        title,
-        description,
+        title: title.trim(),
+        description: description.trim(),
         difficulty,
-        tags,
-        companies, 
-        hints,
-        constraints,
+        tags: Array.isArray(tags) ? tags : [],
+        companies: Array.isArray(companies) ? companies : [], 
+        hints: Array.isArray(hints) ? hints : [],
+        constraints: Array.isArray(constraints) ? constraints : [],
         visibleTestCases,
         hiddenTestCases,
         startCode,
-        referenceSolution
+        referenceSolution,
+        updatedAt: new Date()
       },
-      { runValidators: true, new: true }
+      { 
+        runValidators: true, 
+        new: true // Return the updated document
+      }
     );
 
-    res.status(200).json(updatedProblem);
+    console.log('Problem updated successfully:', updatedProblem._id);
+
+    res.status(200).json({
+      success: true,
+      message: "Problem updated successfully",
+      data: updatedProblem
+    });
+
   } catch (err) {
-    res.status(500).send("Error: " + err);
+    console.error('Error updating problem:', err);
+    
+    if (err.name === 'ValidationError') {
+      return res.status(400).json({
+        success: false,
+        message: "Validation error",
+        errors: Object.values(err.errors).map(e => e.message)
+      });
+    }
+
+    if (err.name === 'CastError') {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid problem ID format"
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
   }
 };
+
+module.exports = { updateProblem };
+
 
 const deleteProblem = async(req,res)=>{
 
@@ -175,9 +246,7 @@ const deleteProblem = async(req,res)=>{
 
 const getProblemById = async (req, res) => {
   const { id } = req.params;
-  const userId = req.result?._id; // Use optional chaining to avoid errors
-
-  
+  const userId = req.result?._id;
 
   try {
     if (!id) return res.status(400).send("ID is Missing");
@@ -189,21 +258,27 @@ const getProblemById = async (req, res) => {
       isAdmin = user?.role === 'admin';
     }
 
-    console.log(isAdmin);
+    console.log('User is admin:', isAdmin);
+    console.log('User ID:', userId);
     
-    // Select fields conditionally based on user role
-    let problemQuery = Problem.findById(id).select(
-      '_id title description difficulty tags visibleTestCases startCode referenceSolution hints constraints companies'
-    );
-
-    // Add hiddenTestCases only for admin users
+    // FIXED: Use different approach for conditional field selection
+    let selectFields = '_id title description difficulty tags visibleTestCases startCode referenceSolution hints constraints companies';
+    
     if (isAdmin) {
-      problemQuery = problemQuery.select('+hiddenTestCases');
+      selectFields += ' hiddenTestCases';
     }
 
-    const getProblem = await problemQuery;
+    const getProblem = await Problem.findById(id).select(selectFields);
 
     if (!getProblem) return res.status(404).send("Problem is Missing");
+
+    // DEBUG: Log the problem data to see what's actually in the database
+    console.log('=== PROBLEM DATA FROM DB ===');
+    console.log('Problem ID:', getProblem._id);
+    console.log('Has hiddenTestCases field:', 'hiddenTestCases' in getProblem);
+    console.log('hiddenTestCases value:', getProblem.hiddenTestCases);
+    console.log('hiddenTestCases type:', typeof getProblem.hiddenTestCases);
+    console.log('hiddenTestCases length:', getProblem.hiddenTestCases?.length);
 
     // Get video solution
     const videos = await SolutionVideo.findOne({ problemId: id });
@@ -216,11 +291,18 @@ const getProblemById = async (req, res) => {
       duration: videos?.duration || null,
     };
 
-    res.status(200).send(responseData);
+    // DEBUG: Log what we're sending back
+    console.log('=== RESPONSE DATA ===');
+    console.log('Response has hiddenTestCases:', 'hiddenTestCases' in responseData);
+    console.log('Response hiddenTestCases:', responseData.hiddenTestCases);
+
+    res.status(200).json(responseData);
   } catch (err) {
+    console.error('Error in getProblemById:', err);
     res.status(500).send("Error: " + err);
   }
 };
+
 const getAllProblem = async(req,res)=>{
 
   try{
