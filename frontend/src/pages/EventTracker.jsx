@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { ChevronLeft, ChevronRight, Calendar, Clock, ExternalLink, Loader2, HelpCircle } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar, Clock, ExternalLink, Loader2, HelpCircle, Trophy, Users } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import Navbar from '../components/Landing/Navbar';
 
 const EventTracker = () => {
@@ -30,7 +31,6 @@ const EventTracker = () => {
     if (typeof dateString !== 'string') {
       return new Date(dateString);
     }
-    // Append 'Z' to indicate UTC if no timezone is present
     if (!dateString.endsWith('Z') && !dateString.includes('+') && !dateString.includes('-', 10)) {
       return new Date(dateString + 'Z');
     }
@@ -125,14 +125,12 @@ const EventTracker = () => {
     
     const cacheKey = `${year}-${month}`;
     
-    // Check cache first
     if (contestsCacheRef.current[cacheKey]) {
       return contestsCacheRef.current[cacheKey];
     }
     
     try {
       const monthContests = await fetchContests(startStr, endStr);
-      // Cache the results
       contestsCacheRef.current[cacheKey] = monthContests;
       return monthContests;
     } catch (err) {
@@ -148,12 +146,10 @@ const EventTracker = () => {
     const nextMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
     const thirdMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 2, 1);
     
-    // Create keys for each month
     const currentKey = `${currentMonth.getFullYear()}-${currentMonth.getMonth()}`;
     const nextKey = `${nextMonth.getFullYear()}-${nextMonth.getMonth()}`;
     const thirdKey = `${thirdMonth.getFullYear()}-${thirdMonth.getMonth()}`;
     
-    // Check which months need to be fetched
     const monthsToFetch = [];
     if (!fetchedMonths.has(currentKey)) monthsToFetch.push(currentMonth);
     if (!fetchedMonths.has(nextKey)) monthsToFetch.push(nextMonth);
@@ -167,7 +163,6 @@ const EventTracker = () => {
     try {
       const results = await Promise.all(monthsToFetch.map(loadContestsForMonth));
       
-      // Update fetched months
       setFetchedMonths(prevFetchedMonths => {
         const newFetchedMonths = new Set(prevFetchedMonths);
         monthsToFetch.forEach(month => {
@@ -177,7 +172,6 @@ const EventTracker = () => {
         return newFetchedMonths;
       });
       
-      // Combine all contests
       setContests(prev => {
         const existingIds = new Set(prev.map(c => c.id));
         const newContests = [];
@@ -205,7 +199,6 @@ const EventTracker = () => {
     loadContests();
   }, [loadContests]);
 
-  // Reset contest index when contests change
   useEffect(() => {
     setCurrentContestIndex(0);
   }, [upcomingContests]);
@@ -251,7 +244,6 @@ const EventTracker = () => {
     let x = rect.left + scrollLeft + rect.width / 2;
     let y = rect.top + scrollTop + rect.height + 10;
     
-    // Adjust position to keep tooltip within viewport
     const tooltipWidth = 400;
     const tooltipHeight = 300;
     const viewportWidth = window.innerWidth;
@@ -288,98 +280,155 @@ const EventTracker = () => {
     
     const days = [];
     
-    // Add empty cells for days before the first day of the month
     for (let i = 0; i < startingDayOfWeek; i++) {
       days.push(null);
     }
     
-    // Add days of the month
     for (let day = 1; day <= daysInMonth; day++) {
       days.push(day);
     }
     
-    // Today's date without time for comparison
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
     return (
-      <div className="bg-black border border-orange-600 rounded-lg p-4 mb-6">
-        <h2 className="text-xl font-bold text-orange-400 mb-4 text-center">{monthName}</h2>
+      <motion.div 
+        className="bg-gradient-to-br from-gray-900/80 to-black/80 backdrop-blur-sm border border-orange-500/30 rounded-xl p-6 mb-6 shadow-2xl"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+      >
+        <motion.h2 
+          className="text-2xl font-bold text-orange-400 mb-6 text-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+        >
+          {monthName}
+        </motion.h2>
         
-        <div className="grid grid-cols-7 gap-1 mb-2">
-          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-            <div key={day} className="text-center font-semibold text-orange-300 py-2">
+        <div className="grid grid-cols-7 gap-2 mb-4">
+          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, index) => (
+            <motion.div 
+              key={day} 
+              className="text-center font-semibold text-orange-300 py-3 bg-orange-500/10 rounded-lg"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+            >
               {day}
-            </div>
+            </motion.div>
           ))}
         </div>
         
-        <div className="grid grid-cols-7 gap-1">
+        <div className="grid grid-cols-7 gap-2">
           {days.map((day, index) => {
             if (day === null) {
-              return <div key={index} className="h-24"></div>;
+              return <div key={index} className="h-28"></div>;
             }
             
             const date = new Date(year, month, day);
             const dayContests = getContestsForDate(date);
             const isToday = date.toDateString() === new Date().toDateString();
-            
-            // Check if date is in the past
             const isPast = date < today;
-            
-            // Check if date is in the future with no contests
             const isFutureWithNoContests = date > today && dayContests.length === 0;
             
             return (
-              <div
+              <motion.div
                 key={day}
-                className={`h-24 border border-orange-600 p-1 overflow-hidden relative cursor-pointer transition-all duration-200 ${
-                  isToday ? 'bg-orange-900 border-orange-300' : 'bg-black'
-                } ${isPast ? 'past-day' : ''} ${hoveredDate?.toDateString() === date.toDateString() ? 'ring-2 ring-orange-400' : ''}`}
+                className={`h-28 border-2 border-orange-500/30 p-2 overflow-hidden relative cursor-pointer transition-all duration-300 rounded-lg group ${
+                  isToday 
+                    ? 'bg-gradient-to-br from-orange-600/40 to-orange-700/40 border-orange-400 shadow-lg shadow-orange-500/20' 
+                    : 'bg-gradient-to-br from-gray-800/40 to-gray-900/40 hover:from-orange-500/20 hover:to-orange-600/20'
+                } ${isPast ? 'opacity-60' : ''}`}
                 onMouseEnter={(e) => handleMouseEnter(date, e)}
                 onMouseLeave={handleMouseLeave}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: index * 0.02, duration: 0.3 }}
+                whileHover={{ 
+                  scale: 1.05, 
+                  boxShadow: "0 0 20px rgba(251, 146, 60, 0.4)",
+                  borderColor: "rgba(251, 146, 60, 0.8)"
+                }}
               >
-                <div className={`text-sm font-semibold mb-1 ${isToday ? 'text-white' : 'text-orange-200'}`}>
+                <motion.div 
+                  className={`text-lg font-bold mb-2 ${
+                    isToday ? 'text-white' : 'text-orange-200 group-hover:text-orange-100'
+                  }`}
+                  whileHover={{ scale: 1.1 }}
+                >
                   {day}
-                </div>
+                </motion.div>
                 
-                {/* Question mark for future days with no contests */}
                 {isFutureWithNoContests && (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <HelpCircle className="w-8 h-8 text-orange-400 opacity-40" />
-                  </div>
+                  <motion.div 
+                    className="absolute inset-0 flex items-center justify-center"
+                    animate={{ rotate: [0, 10, -10, 0] }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                  >
+                    <HelpCircle className="w-8 h-8 text-orange-400/50" />
+                  </motion.div>
                 )}
                 
-                {/* Contest list - shown by default for today and past days */}
-                {!isFutureWithNoContests && dayContests.map((contest, idx) => (
-                  <div
-                    key={contest.id || idx}
-                    className="text-xs bg-orange-600 text-white p-1 mb-1 rounded truncate"
-                    title={contest.event || 'Contest'}
-                  >
-                    {contest.event ? (
-                      contest.event.length > 15 ? contest.event.substring(0, 15) + '...' : contest.event
-                    ) : 'Contest'}
+                {!isFutureWithNoContests && (
+                  <div className="space-y-1">
+                    {dayContests.slice(0, 2).map((contest, idx) => (
+                      <motion.div
+                        key={contest.id || idx}
+                        className="text-xs bg-gradient-to-r from-orange-600 to-orange-700 text-white p-1.5 rounded truncate shadow-sm"
+                        title={contest.event || 'Contest'}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.3 + idx * 0.1 }}
+                        whileHover={{ scale: 1.05, backgroundColor: "rgb(194, 65, 12)" }}
+                      >
+                        {contest.event ? (
+                          contest.event.length > 12 ? contest.event.substring(0, 12) + '...' : contest.event
+                        ) : 'Contest'}
+                      </motion.div>
+                    ))}
+                    {dayContests.length > 2 && (
+                      <motion.div 
+                        className="text-xs text-orange-300 font-medium"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.5 }}
+                      >
+                        +{dayContests.length - 2} more
+                      </motion.div>
+                    )}
                   </div>
-                ))}
-              </div>
+                )}
+              </motion.div>
             );
           })}
         </div>
-      </div>
+      </motion.div>
     );
-  }, [currentDate, getContestsForDate, handleMouseEnter, handleMouseLeave, hoveredDate]);
+  }, [currentDate, getContestsForDate, handleMouseEnter, handleMouseLeave]);
 
   const renderContestSlider = useCallback(() => {
     if (upcomingContests.length === 0) {
       return (
-        <div className="bg-black border border-orange-600 rounded-lg p-4">
-          <h3 className="text-lg font-bold text-orange-400 mb-4 flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-orange-400" />
+        <motion.div 
+          className="bg-gradient-to-br from-gray-900/80 to-black/80 backdrop-blur-sm border border-orange-500/30 rounded-xl p-6 shadow-2xl"
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <h3 className="text-xl font-bold text-orange-400 mb-4 flex items-center gap-2">
+            <Trophy className="w-6 h-6 text-orange-400" />
             Upcoming Contests
           </h3>
-          <p className="text-orange-300 text-center py-4">No upcoming contests found</p>
-        </div>
+          <motion.p 
+            className="text-orange-300 text-center py-8"
+            animate={{ opacity: [0.5, 1, 0.5] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          >
+            No upcoming contests found
+          </motion.p>
+        </motion.div>
       );
     }
 
@@ -387,87 +436,148 @@ const EventTracker = () => {
     if (!contest) return null;
     
     return (
-      <div className="bg-black border border-orange-600 rounded-lg p-4">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-bold text-orange-400 flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-orange-400" />
+      <motion.div 
+        className="bg-gradient-to-br from-gray-900/80 to-black/80 backdrop-blur-sm border border-orange-500/30 rounded-xl p-6 shadow-2xl"
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.6 }}
+      >
+        <div className="flex justify-between items-center mb-6">
+          <motion.h3 
+            className="text-xl font-bold text-orange-400 flex items-center gap-2"
+            whileHover={{ scale: 1.05 }}
+          >
+            <Trophy className="w-6 h-6 text-orange-400" />
             Upcoming Contests
-          </h3>
-          <div className="text-orange-300 text-sm">
+          </motion.h3>
+          <div className="text-orange-300 text-sm bg-orange-500/20 px-3 py-1 rounded-full">
             {currentContestIndex + 1} / {upcomingContests.length}
           </div>
         </div>
         
         <div className="relative">
-          {/* Navigation Arrows */}
           {upcomingContests.length > 1 && (
             <>
-              <button 
+              <motion.button 
                 onClick={prevContest}
-                className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-orange-700 p-2 rounded-full hover:bg-orange-600 z-10"
+                className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-orange-600 p-3 rounded-full hover:bg-orange-500 z-10 shadow-lg"
+                whileHover={{ scale: 1.1, boxShadow: "0 0 15px rgba(251, 146, 60, 0.5)" }}
+                whileTap={{ scale: 0.95 }}
               >
                 <ChevronLeft className="w-5 h-5 text-white" />
-              </button>
+              </motion.button>
               
-              <button 
+              <motion.button 
                 onClick={nextContest}
-                className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-orange-700 p-2 rounded-full hover:bg-orange-600 z-10"
+                className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-orange-600 p-3 rounded-full hover:bg-orange-500 z-10 shadow-lg"
+                whileHover={{ scale: 1.1, boxShadow: "0 0 15px rgba(251, 146, 60, 0.5)" }}
+                whileTap={{ scale: 0.95 }}
               >
                 <ChevronRight className="w-5 h-5 text-white" />
-              </button>
+              </motion.button>
             </>
           )}
           
-          {/* Contest Card */}
-          <div className={`bg-orange-900 border border-orange-700 rounded p-4 ${upcomingContests.length > 1 ? 'mx-8' : ''}`}>
-            <h4 className="font-semibold text-white mb-2 text-center">{contest.event || 'Contest'}</h4>
-            <div className="text-sm text-orange-100 space-y-2">
-              <div className="flex items-center gap-2">
-                <ExternalLink className="w-4 h-4 text-orange-300 flex-shrink-0" />
-                <span className="truncate">Platform: {contest.host || 'Unknown'}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-orange-300 flex-shrink-0" />
-                <span>Start: {formatToIST(contest.start)} (IST)</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-orange-300 flex-shrink-0" />
-                <span>Duration: {formatDuration(contest.duration)}</span>
-              </div>
-            </div>
-            {contest.href && (
-              <div className="flex justify-center mt-4">
-                <a
-                  href={contest.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="bg-orange-600 text-white px-4 py-2 rounded text-sm hover:bg-orange-500 transition-colors"
+          <AnimatePresence mode="wait">
+            <motion.div 
+              key={currentContestIndex}
+              className={`bg-gradient-to-br from-orange-900/60 to-orange-800/60 border border-orange-500/40 rounded-xl p-6 backdrop-blur-sm ${upcomingContests.length > 1 ? 'mx-12' : ''}`}
+              initial={{ opacity: 0, y: 20, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -20, scale: 0.95 }}
+              transition={{ duration: 0.3 }}
+            >
+              <motion.h4 
+                className="font-bold text-white mb-4 text-center text-lg"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.1 }}
+              >
+                {contest.event || 'Contest'}
+              </motion.h4>
+              
+              <div className="text-sm text-orange-100 space-y-3">
+                <motion.div 
+                  className="flex items-center gap-3 p-2 bg-black/20 rounded-lg"
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.2 }}
                 >
-                  View Contest
-                </a>
+                  <ExternalLink className="w-5 h-5 text-orange-300 flex-shrink-0" />
+                  <span className="truncate">Platform: {contest.host || 'Unknown'}</span>
+                </motion.div>
+                
+                <motion.div 
+                  className="flex items-center gap-3 p-2 bg-black/20 rounded-lg"
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.3 }}
+                >
+                  <Clock className="w-5 h-5 text-orange-300 flex-shrink-0" />
+                  <span>Start: {formatToIST(contest.start)} (IST)</span>
+                </motion.div>
+                
+                <motion.div 
+                  className="flex items-center gap-3 p-2 bg-black/20 rounded-lg"
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.4 }}
+                >
+                  <Users className="w-5 h-5 text-orange-300 flex-shrink-0" />
+                  <span>Duration: {formatDuration(contest.duration)}</span>
+                </motion.div>
               </div>
-            )}
-          </div>
+              
+              {contest.href && (
+                <motion.div 
+                  className="flex justify-center mt-6"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 }}
+                >
+                  <motion.a
+                    href={contest.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-gradient-to-r from-orange-600 to-orange-700 text-white px-6 py-3 rounded-lg text-sm font-semibold hover:from-orange-500 hover:to-orange-600 transition-all duration-300 shadow-lg"
+                    whileHover={{ 
+                      scale: 1.05, 
+                      boxShadow: "0 0 20px rgba(251, 146, 60, 0.4)" 
+                    }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    View Contest
+                  </motion.a>
+                </motion.div>
+              )}
+            </motion.div>
+          </AnimatePresence>
         </div>
         
         {upcomingContests.length > 1 && (
-          <div className="flex justify-center mt-4 space-x-2">
+          <motion.div 
+            className="flex justify-center mt-6 space-x-2"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6 }}
+          >
             {upcomingContests.map((_, index) => (
-              <button
+              <motion.button
                 key={index}
                 onClick={() => setCurrentContestIndex(index)}
-                className={`w-3 h-3 rounded-full ${
-                  index === currentContestIndex ? 'bg-orange-500' : 'bg-orange-800'
+                className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                  index === currentContestIndex ? 'bg-orange-500 scale-125' : 'bg-orange-800 hover:bg-orange-600'
                 }`}
+                whileHover={{ scale: 1.2 }}
+                whileTap={{ scale: 0.9 }}
               />
             ))}
-          </div>
+          </motion.div>
         )}
-      </div>
+      </motion.div>
     );
   }, [upcomingContests, currentContestIndex, prevContest, nextContest, formatToIST, formatDuration]);
 
-  // Hover tooltip for day contests
   const renderHoverTooltip = useCallback(() => {
     if (!hoveredDate) return null;
     
@@ -477,52 +587,82 @@ const EventTracker = () => {
     const isPast = hoveredDate < today;
     
     return (
-      <div 
-        ref={tooltipRef}
-        className="fixed bg-black border border-orange-600 rounded-lg p-4 shadow-xl z-50 max-w-md"
-        style={{ 
-          left: tooltipPosition.x - 200,
-          top: tooltipPosition.y,
-          transform: 'translateX(0)',
-          pointerEvents: 'none'
-        }}
-      >
-        <div className="text-lg font-bold text-orange-400 mb-2">
-          {hoveredDate.toLocaleDateString('en-US', { 
-            weekday: 'long', 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
-          })}
-          {isPast && <span className="text-red-400 ml-2 text-sm">(Past)</span>}
-        </div>
-        
-        {dayContests.length === 0 ? (
-          <p className="text-orange-300">No contests scheduled for this day</p>
-        ) : (
-          <div className="space-y-2 max-h-[300px] overflow-y-auto">
-            {dayContests.map((contest, index) => (
-              <div key={contest.id || index} className="bg-orange-900 border border-orange-700 rounded p-3">
-                <h4 className="font-semibold text-white mb-1">{contest.event || 'Contest'}</h4>
-                <div className="text-xs text-orange-200 space-y-1">
-                  <div className="flex items-center gap-1">
-                    <ExternalLink className="w-3 h-3" />
-                    <span>Platform: {contest.host || 'Unknown'}</span>
+      <AnimatePresence>
+        <motion.div 
+          ref={tooltipRef}
+          className="fixed bg-gradient-to-br from-gray-900/95 to-black/95 backdrop-blur-lg border-2 border-orange-500/50 rounded-xl p-6 shadow-2xl z-50 max-w-md"
+          style={{ 
+            left: tooltipPosition.x - 200,
+            top: tooltipPosition.y,
+            pointerEvents: 'none'
+          }}
+          initial={{ opacity: 0, scale: 0.8, y: 10 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.8, y: 10 }}
+          transition={{ duration: 0.2 }}
+        >
+          <motion.div 
+            className="text-xl font-bold text-orange-400 mb-4 flex items-center gap-2"
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            <Calendar className="w-5 h-5" />
+            {hoveredDate.toLocaleDateString('en-US', { 
+              weekday: 'long', 
+              year: 'numeric', 
+              month: 'long', 
+              day: 'numeric' 
+            })}
+            {isPast && <span className="text-red-400 ml-2 text-sm">(Past)</span>}
+          </motion.div>
+          
+          {dayContests.length === 0 ? (
+            <motion.p 
+              className="text-orange-300 text-center py-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+            >
+              No contests scheduled for this day
+            </motion.p>
+          ) : (
+            <motion.div 
+              className="space-y-3 max-h-[300px] overflow-y-auto"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              {dayContests.map((contest, index) => (
+                <motion.div 
+                  key={contest.id || index} 
+                  className="bg-gradient-to-r from-orange-900/60 to-orange-800/60 border border-orange-500/40 rounded-lg p-4 backdrop-blur-sm"
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.3 + index * 0.1 }}
+                  whileHover={{ scale: 1.02, borderColor: "rgba(251, 146, 60, 0.6)" }}
+                >
+                  <h4 className="font-semibold text-white mb-2">{contest.event || 'Contest'}</h4>
+                  <div className="text-xs text-orange-200 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <ExternalLink className="w-4 h-4 text-orange-300" />
+                      <span>Platform: {contest.host || 'Unknown'}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-orange-300" />
+                      <span>Start: {formatTimeToIST(contest.start)} (IST)</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Users className="w-4 h-4 text-orange-300" />
+                      <span>Duration: {formatDuration(contest.duration)}</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Clock className="w-3 h-3" />
-                    <span>Start: {formatTimeToIST(contest.start)} (IST)</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Clock className="w-3 h-3" />
-                    <span>Duration: {formatDuration(contest.duration)}</span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+                </motion.div>
+              ))}
+            </motion.div>
+          )}
+        </motion.div>
+      </AnimatePresence>
     );
   }, [hoveredDate, getContestsForDate, tooltipPosition, formatTimeToIST, formatDuration]);
 
@@ -534,90 +674,118 @@ const EventTracker = () => {
         backgroundPosition: 'center',
       }}
     >
-    
       <style>
         {`
-          .past-day {
-            position: relative;
-            opacity: 0.6;
+          .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
           }
-          
-          .past-day::after {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: 
-              linear-gradient(
-                to top left,
-                rgba(0,0,0,0) 0%,
-                rgba(0,0,0,0) calc(50% - 2px),
-                rgba(220, 0, 0, 0.9) calc(50% - 2px),
-                rgba(220, 0, 0, 0.9) calc(50% + 2px),
-                rgba(0,0,0,0) calc(50% + 2px),
-                rgba(0,0,0,0) 100%
-              ),
-              linear-gradient(
-                to top right,
-                rgba(0,0,0,0) 0%,
-                rgba(0,0,0,0) calc(50% - 2px),
-                rgba(220, 0, 0, 0.9) calc(50% - 2px),
-                rgba(220, 0, 0, 0.9) calc(50% + 2px),
-                rgba(0,0,0,0) calc(50% + 2px),
-                rgba(0,0,0,0) 100%
-              );
-            pointer-events: none;
+          .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 3px;
+          }
+          .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(251, 146, 60, 0.6);
+            border-radius: 3px;
+          }
+          .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(251, 146, 60, 0.8);
           }
         `}
       </style>
-      <Navbar/>
+      
+      <Navbar />
 
       <div className="bg-opacity-80 min-h-screen">
         <div className="container mx-auto px-4 py-8">
-          <div className="flex items-center justify-between mb-8">
-            <h1 className="text-3xl font-bold text-orange-400 flex items-center gap-2">
-              <Calendar className="w-8 h-8 text-orange-400" />
+          <motion.div 
+            className="flex items-center justify-between mb-8"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <motion.h1 
+              className="text-4xl font-bold text-orange-400 flex items-center gap-3"
+              whileHover={{ scale: 1.05 }}
+            >
+              <motion.div
+                animate={{ rotate: [0, 10, -10, 0] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <Calendar className="w-10 h-10 text-orange-400" />
+              </motion.div>
               Contest Calendar
-            </h1>
+            </motion.h1>
             
             <div className="flex items-center gap-4">
-              <button
+              <motion.button
                 onClick={() => navigateMonth(-1)}
-                className="p-2 bg-orange-700 text-white rounded hover:bg-orange-600 transition-colors"
+                className="p-3 bg-gradient-to-r from-orange-600 to-orange-700 text-white rounded-lg hover:from-orange-500 hover:to-orange-600 transition-all duration-300 shadow-lg"
+                whileHover={{ scale: 1.1, boxShadow: "0 0 15px rgba(251, 146, 60, 0.5)" }}
+                whileTap={{ scale: 0.95 }}
               >
                 <ChevronLeft className="w-5 h-5" />
-              </button>
+              </motion.button>
               
-              <span className="text-orange-300 font-semibold">
+              <motion.span 
+                className="text-orange-300 font-semibold text-lg bg-orange-500/20 px-4 py-2 rounded-lg"
+                key={currentDate.getMonth()}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.3 }}
+              >
                 {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-              </span>
+              </motion.span>
               
-              <button
+              <motion.button
                 onClick={() => navigateMonth(1)}
-                className="p-2 bg-orange-700 text-white rounded hover:bg-orange-600 transition-colors"
+                className="p-3 bg-gradient-to-r from-orange-600 to-orange-700 text-white rounded-lg hover:from-orange-500 hover:to-orange-600 transition-all duration-300 shadow-lg"
+                whileHover={{ scale: 1.1, boxShadow: "0 0 15px rgba(251, 146, 60, 0.5)" }}
+                whileTap={{ scale: 0.95 }}
               >
                 <ChevronRight className="w-5 h-5" />
-              </button>
+              </motion.button>
             </div>
-          </div>
+          </motion.div>
 
-          {loading && (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="w-8 h-8 animate-spin text-orange-400" />
-              <span className="ml-2 text-orange-300">Loading contests...</span>
-            </div>
-          )}
+          <AnimatePresence>
+            {loading && (
+              <motion.div 
+                className="flex items-center justify-center py-16"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                >
+                  <Loader2 className="w-10 h-10 text-orange-400" />
+                </motion.div>
+                <span className="ml-3 text-orange-300 text-lg">Loading contests...</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-          {error && (
-            <div className="bg-red-900 border border-red-600 text-white p-4 rounded mb-6">
-              {error}
-            </div>
-          )}
+          <AnimatePresence>
+            {error && (
+              <motion.div 
+                className="bg-gradient-to-r from-red-900/80 to-red-800/80 border border-red-500/50 text-white p-6 rounded-xl mb-6 backdrop-blur-sm"
+                initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -10, scale: 0.95 }}
+              >
+                {error}
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {!loading && !error && (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <motion.div 
+              className="grid grid-cols-1 lg:grid-cols-3 gap-8"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+            >
               <div className="lg:col-span-2">
                 {renderCalendar()}
               </div>
@@ -625,12 +793,11 @@ const EventTracker = () => {
               <div className="lg:col-span-1">
                 {renderContestSlider()}
               </div>
-            </div>
+            </motion.div>
           )}
         </div>
       </div>
       
-      {/* Hover tooltip - positioned absolutely */}
       {renderHoverTooltip()}
     </div>
   );
