@@ -2,7 +2,7 @@ import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Navigate, NavLink } from "react-router-dom";
 import { logoutUser } from "../../authSlice";
-import { User, UserCircle } from "lucide-react";
+import { Gift, User, UserCircle } from "lucide-react";
 
 const Navbar = () => {
   const dispatch = useDispatch();
@@ -82,6 +82,14 @@ const Navbar = () => {
             className="hover:text-gray-300 transition"
           >
             Event Tracker
+          </NavLink>
+          <NavLink
+            to={isUserAuthenticated ? "/redeem" : "/signup"}
+            style={getActiveStyle}
+            className="flex items-center gap-1"
+          >
+            <Gift size={16} />
+            Redeem
           </NavLink>
           <NavLink to="/college" style={getActiveStyle}>
             College

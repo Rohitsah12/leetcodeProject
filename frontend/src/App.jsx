@@ -29,6 +29,7 @@ import Students from './pages/Students';
 import EventTracker from './pages/EventTracker';
 import AuthSuccess from './components/AuthSuccess';
 import AssignTask from './components/ManageStudents/AssignTask';
+import Redeem from './pages/Redeem';
 
 const App = () => {
   const dispatch = useDispatch();
@@ -156,6 +157,7 @@ const App = () => {
             <Navigate to="/" replace />
         } 
       />
+      
       <Route 
         path="/admin/update/:problemId" 
         element={
@@ -164,6 +166,10 @@ const App = () => {
             <Navigate to="/" replace />
         } 
       />
+      <Route path="/redeem" element={isUserAuthenticated ?
+            <Redeem /> : 
+            <Navigate to="/" replace />
+        }  />
 
       {/* College Protected routes */}
       <Route 
