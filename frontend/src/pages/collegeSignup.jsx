@@ -1,180 +1,18 @@
-import { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { useDispatch, useSelector } from 'react-redux';
+import React, { useEffect } from 'react';
 import { useNavigate, NavLink } from 'react-router-dom';
-import { collegeRegister, resetAuthError } from '../authSlice';
-import { FaGoogle, FaExclamationTriangle, FaCheckCircle, FaCode } from 'react-icons/fa';
-import { Eye, EyeOff, AlertCircle, X } from 'lucide-react';
-
-const signupSchema = z.object({
-  firstName: z.string().min(3, "College name must be at least 3 characters"),
-  emailId: z.string().email("Invalid email address"),
-  password: z.string()
-    .min(8, "Password must be at least 8 characters")
-    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, "Password must contain at least one uppercase letter, one lowercase letter, and one number"),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
-});
+import { FaBuilding, FaEnvelope, FaPhone, FaArrowRight, FaCode } from 'react-icons/fa';
 
 function CollegeSignup() {
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [notification, setNotification] = useState(null);
-  const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { isCollegeAuthenticated, loading, error } = useSelector(
-    (state) => state.auth
-  );
 
-  // Reset auth errors when component mounts
+  // Redirect to login after showing the message
   useEffect(() => {
-    dispatch(resetAuthError());
-  }, [dispatch]);
+    const timer = setTimeout(() => {
+      navigate('/collegeLogin');
+    }, 5000);
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    watch,
-    reset,
-  } = useForm({ resolver: zodResolver(signupSchema) });
-
-  const password = watch("password");
-
-  useEffect(() => {
-    if (isCollegeAuthenticated) {
-      navigate('/college');
-    }
-  }, [isCollegeAuthenticated, navigate]);
-
-  // Handle different error types
-  const getErrorMessage = (error) => {
-    if (!error) return null;
-    
-    const errorStr = typeof error === 'string' ? error : error.message || JSON.stringify(error);
-    
-    if (errorStr.toLowerCase().includes('email') && errorStr.toLowerCase().includes('exist')) {
-      return {
-        type: 'warning',
-        title: 'Email Already Registered',
-        message: 'A college with this email already exists. Please try another email or log in.',
-        action: 'login'
-      };
-    }
-    if (errorStr.toLowerCase().includes('invalid email') || errorStr.toLowerCase().includes('email validation')) {
-      return {
-        type: 'error',
-        title: 'Invalid Email Format',
-        message: 'Please enter a valid email address.',
-        action: 'retry'
-      };
-    }
-    if (errorStr.toLowerCase().includes('password') && errorStr.toLowerCase().includes('requirement')) {
-      return {
-        type: 'error',
-        title: 'Weak Password',
-        message: 'Password must contain at least 8 characters with uppercase, lowercase, and numbers.',
-        action: 'retry'
-      };
-    }
-    if (errorStr.toLowerCase().includes('network') || errorStr.toLowerCase().includes('connection')) {
-      return {
-        type: 'error',
-        title: 'Connection Error',
-        message: 'Please check your internet connection and try again.',
-        action: 'retry'
-      };
-    }
-    if (errorStr.toLowerCase().includes('validation') || errorStr.toLowerCase().includes('invalid')) {
-      return {
-        type: 'error',
-        title: 'Invalid Information',
-        message: 'Please check your information and try again.',
-        action: 'retry'
-      };
-    }
-    if (errorStr.includes('401')) {
-      return {
-        type: 'error',
-        title: 'Session Expired',
-        message: 'Your session has expired. Please try again.',
-        action: 'retry'
-      };
-    }
-    
-    return {
-      type: 'error',
-      title: 'Signup Failed',
-      message: errorStr || 'An unexpected error occurred. Please try again.',
-      action: 'retry'
-    };
-  };
-
-  const onSubmit = async (data) => {
-    setNotification(null);
-    dispatch(resetAuthError());
-    
-    try {
-      const result = await dispatch(collegeRegister(data));
-      if (result.type === 'auth/collegeRegister/fulfilled') {
-        setNotification({
-          type: 'success',
-          title: 'College Account Created!',
-          message: 'Welcome to IndieCode! You can now manage your college profile.',
-          action: null
-        });
-        setTimeout(() => {
-          navigate("/college");
-        }, 2000);
-      }
-    } catch (err) {
-      console.error('Signup error:', err);
-    }
-  };
-
-  const dismissNotification = () => {
-    setNotification(null);
-    dispatch(resetAuthError());
-  };
-
-  const handleRetry = () => {
-    setNotification(null);
-    dispatch(resetAuthError());
-    reset();
-  };
-
-  const handleCoderRedirect = () => {
-    dismissNotification();
-    navigate("/signup");
-  };
-
-  // Password strength indicator
-  const getPasswordStrength = (password) => {
-    if (!password) return { strength: 0, label: '', color: '' };
-    
-    let strength = 0;
-    if (password.length >= 8) strength++;
-    if (password.match(/[a-z]/)) strength++;
-    if (password.match(/[A-Z]/)) strength++;
-    if (password.match(/[0-9]/)) strength++;
-    if (password.match(/[^a-zA-Z0-9]/)) strength++;
-
-    const labels = ['Very Weak', 'Weak', 'Fair', 'Good', 'Strong'];
-    const colors = ['bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-blue-500', 'bg-green-500'];
-    
-    return {
-      strength: (strength / 5) * 100,
-      label: labels[strength - 1] || 'Very Weak',
-      color: colors[strength - 1] || 'bg-red-500'
-    };
-  };
-
-  const passwordStrength = getPasswordStrength(password);
-  const errorInfo = error ? getErrorMessage(error) : null;
+    return () => clearTimeout(timer);
+  }, [navigate]);
 
   return (
     <div
@@ -185,69 +23,7 @@ function CollegeSignup() {
         backgroundPosition: "center",
       }}
     >
-      {/* Notification Toast */}
-      {(notification || errorInfo) && (
-        <div className="fixed top-4 right-4 z-50 max-w-md">
-          <div className={`p-4 rounded-lg shadow-lg border backdrop-blur-md ${
-            (notification?.type || errorInfo?.type) === 'success' 
-              ? 'bg-green-900/90 border-green-500/50 text-green-100' 
-              : (notification?.type || errorInfo?.type) === 'warning'
-              ? 'bg-yellow-900/90 border-yellow-500/50 text-yellow-100'
-              : 'bg-red-900/90 border-red-500/50 text-red-100'
-          }`}>
-            <div className="flex items-start gap-3">
-              <div className="flex-shrink-0">
-                {(notification?.type || errorInfo?.type) === 'success' ? (
-                  <FaCheckCircle className="text-green-400 text-xl" />
-                ) : (notification?.type || errorInfo?.type) === 'warning' ? (
-                  <FaExclamationTriangle className="text-yellow-400 text-xl" />
-                ) : (
-                  <AlertCircle className="text-red-400 text-xl" />
-                )}
-              </div>
-              <div className="flex-1">
-                <h4 className="font-semibold text-sm">
-                  {notification?.title || errorInfo?.title}
-                </h4>
-                <p className="text-sm mt-1 opacity-90">
-                  {notification?.message || errorInfo?.message}
-                </p>
-                {(notification?.action || errorInfo?.action) && (
-                  <div className="mt-3 flex gap-2">
-                    {(notification?.action || errorInfo?.action) === 'login' && (
-                      <button
-                        onClick={() => {
-                          dismissNotification();
-                          navigate('/collegeLogin');
-                        }}
-                        className="text-xs px-3 py-1 bg-white/20 hover:bg-white/30 rounded transition-colors"
-                      >
-                        Go to Login
-                      </button>
-                    )}
-                    {(notification?.action || errorInfo?.action) === 'retry' && (
-                      <button
-                        onClick={handleRetry}
-                        className="text-xs px-3 py-1 bg-white/20 hover:bg-white/30 rounded transition-colors"
-                      >
-                        Try Again
-                      </button>
-                    )}
-                  </div>
-                )}
-              </div>
-              <button
-                onClick={dismissNotification}
-                className="flex-shrink-0 text-white/60 hover:text-white transition-colors"
-              >
-                <X size={18} />
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className="w-full max-w-md bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl shadow-[0_0_30px_rgba(255,255,255,0.1)] p-8 relative overflow-hidden">
+      <div className="w-full max-w-lg bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl shadow-[0_0_30px_rgba(255,255,255,0.1)] p-8 relative overflow-hidden">
         <div
           className="absolute inset-0 rounded-2xl border border-white/10 pointer-events-none"
           style={{
@@ -256,12 +32,12 @@ function CollegeSignup() {
           }}
         ></div>
 
-        <div className="relative z-10">
-          {/* Logo - Same orange theme */}
+        <div className="relative z-10 text-center">
+          {/* Logo */}
           <div className="relative mb-8">
             <NavLink
               to="/"
-              className="group flex items-center space-x-2 hover:scale-105 transition-all duration-300 ease-out"
+              className="group flex items-center space-x-2 hover:scale-105 transition-all duration-300 ease-out justify-center"
             >
               <div className="relative">
                 <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center shadow-lg group-hover:shadow-orange-500/25 transition-all duration-300">
@@ -282,190 +58,66 @@ function CollegeSignup() {
                   Code
                 </span>
               </div>
-
-              <div className="absolute -bottom-1 left-12 h-0.5 w-0 bg-gradient-to-r from-orange-500 to-orange-400 group-hover:w-[120px] transition-all duration-300 ease-out"></div>
             </NavLink>
           </div>
 
-          <h2 className="text-2xl font-bold text-center text-orange-400 mb-6">
+          {/* College Icon */}
+          <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-6">
+            <FaBuilding className="text-white text-3xl" />
+          </div>
+
+          <h2 className="text-3xl font-bold text-orange-400 mb-6">
             College Registration
           </h2>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            {/* College Name */}
-            <div className="space-y-2">
-              <label htmlFor="firstName" className="block text-sm font-medium text-white">
-                College Name
-              </label>
-              <input
-                id="firstName"
-                type="text"
-                placeholder="University of Technology"
-                autoComplete="organization"
-                className={`w-full px-4 py-3 bg-white/5 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 ${
-                  errors.firstName ? "border-red-500 focus:ring-red-500" : "border-white/10"
-                }`}
-                {...register("firstName")}
-              />
-              {errors.firstName && (
-                <div className="flex items-center gap-2 text-red-400 text-sm">
-                  <AlertCircle size={16} />
-                  <span>{errors.firstName.message}</span>
-                </div>
-              )}
-            </div>
-
-            {/* College Email */}
-            <div className="space-y-2">
-              <label htmlFor="emailId" className="block text-sm font-medium text-white">
-                College Email
-              </label>
-              <input
-                id="emailId"
-                type="email"
-                placeholder="admin@college.edu"
-                autoComplete="email"
-                className={`w-full px-4 py-3 bg-white/5 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 ${
-                  errors.emailId ? "border-red-500 focus:ring-red-500" : "border-white/10"
-                }`}
-                {...register("emailId")}
-              />
-              {errors.emailId && (
-                <div className="flex items-center gap-2 text-red-400 text-sm">
-                  <AlertCircle size={16} />
-                  <span>{errors.emailId.message}</span>
-                </div>
-              )}
-            </div>
-
-            {/* Password */}
-            <div className="space-y-2">
-              <label htmlFor="password" className="block text-sm font-medium text-white">
-                Password
-              </label>
-              <div className="relative">
-                <input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
-                  autoComplete="new-password"
-                  className={`w-full px-4 py-3 pr-12 bg-white/5 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 ${
-                    errors.password ? "border-red-500 focus:ring-red-500" : "border-white/10"
-                  }`}
-                  {...register("password")}
-                />
-                <button
-                  type="button"
-                  className="absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
-                  onClick={() => setShowPassword(!showPassword)}
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                >
-                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                </button>
+          <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-6 mb-8">
+            <h3 className="text-xl font-semibold text-white mb-4">
+              🎓 For College Administrators
+            </h3>
+            <p className="text-gray-300 mb-6 leading-relaxed">
+              To maintain quality and ensure proper integration, we provide college login credentials directly. 
+              Our team will help you set up your institution's coding culture management system.
+            </p>
+            
+            <div className="space-y-4 text-left">
+              <div className="flex items-center gap-3 text-gray-300">
+                <FaEnvelope className="text-orange-400 flex-shrink-0" />
+                <span>Email us at: <strong className="text-white">support@indiecode.com</strong></span>
               </div>
-              
-              {/* Password Strength Indicator */}
-              {password && (
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full transition-all duration-300 ${passwordStrength.color}`}
-                        style={{ width: `${passwordStrength.strength}%` }}
-                      ></div>
-                    </div>
-                    <span className="text-xs text-white/60">{passwordStrength.label}</span>
-                  </div>
-                </div>
-              )}
-              
-              {errors.password && (
-                <div className="flex items-center gap-2 text-red-400 text-sm">
-                  <AlertCircle size={16} />
-                  <span>{errors.password.message}</span>
-                </div>
-              )}
-            </div>
-
-            {/* Confirm Password */}
-            <div className="space-y-2">
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-white">
-                Confirm Password
-              </label>
-              <div className="relative">
-                <input
-                  id="confirmPassword"
-                  type={showConfirmPassword ? "text" : "password"}
-                  placeholder="••••••••"
-                  autoComplete="new-password"
-                  className={`w-full px-4 py-3 pr-12 bg-white/5 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 ${
-                    errors.confirmPassword ? "border-red-500 focus:ring-red-500" : "border-white/10"
-                  }`}
-                  {...register("confirmPassword")}
-                />
-                <button
-                  type="button"
-                  className="absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  aria-label={showConfirmPassword ? "Hide password" : "Show password"}
-                >
-                  {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                </button>
+              <div className="flex items-center gap-3 text-gray-300">
+                <FaPhone className="text-orange-400 flex-shrink-0" />
+                <span>Call us at: <strong className="text-white">+91 XXXXX XXXXX</strong></span>
               </div>
-              {errors.confirmPassword && (
-                <div className="flex items-center gap-2 text-red-400 text-sm">
-                  <AlertCircle size={16} />
-                  <span>{errors.confirmPassword.message}</span>
-                </div>
-              )}
             </div>
+          </div>
 
-            {/* Submit Button - Orange Theme */}
-            <button
-              type="submit"
-              disabled={loading}
-              className={`w-full py-3 px-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-medium rounded-lg shadow-lg hover:from-orange-600 hover:to-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-black transition-all duration-200 ${
-                loading ? "opacity-50 cursor-not-allowed" : "hover:shadow-orange-500/25"
-              }`}
+          <div className="space-y-4">
+            <NavLink 
+              to="/collegeLogin"
+              className="w-full flex items-center justify-center gap-2 py-3 px-6 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-medium rounded-lg shadow-lg hover:from-orange-600 hover:to-orange-700 transition-all duration-200 hover:shadow-orange-500/25"
             >
-              {loading ? (
-                <div className="flex items-center justify-center gap-2">
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                  <span>Creating College Account...</span>
-                </div>
-              ) : (
-                "Create College Account"
-              )}
-            </button>
-          </form>
+              <FaBuilding />
+              Go to College Login
+              <FaArrowRight />
+            </NavLink>
 
-          {/* Navigation Options */}
-          <div className="mt-6 space-y-3">
-            {/* Existing Account */}
             <div className="text-center">
               <span className="text-sm text-white/60">
-                Already have an account?{" "}
+                Are you a fluent coder?{" "}
                 <NavLink 
-                  to="/collegeLogin" 
-                  className="text-orange-400 hover:text-orange-300 transition-colors font-medium"
-                  onClick={() => dispatch(resetAuthError())}
+                  to="/signup" 
+                  className="text-orange-400 hover:text-orange-300 transition-colors font-medium inline-flex items-center gap-1"
                 >
-                  College Login
+                  <FaCode />
+                  Sign up here
                 </NavLink>
               </span>
             </div>
-            
-            {/* Fluent Coder Signup Option */}
-            <div className="text-center">
-              <button
-                onClick={handleCoderRedirect}
-                className="flex items-center justify-center gap-2 text-sm text-orange-400 hover:text-orange-300 transition-colors font-medium"
-              >
-                <FaCode className="text-orange-400" />
-                <span>Are you a fluent coder? Sign up here</span>
-              </button>
-            </div>
           </div>
+
+          <p className="text-xs text-gray-400 mt-6">
+            Redirecting to login page in a few seconds...
+          </p>
         </div>
       </div>
     </div>
