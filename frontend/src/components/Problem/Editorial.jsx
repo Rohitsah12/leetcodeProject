@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Pause, Play, Volume2, VolumeX, Maximize, SkipBack, SkipForward, Settings } from 'lucide-react';
+import { Pause, Play, Volume2, VolumeX, Maximize, SkipBack, SkipForward, Settings, Clock } from 'lucide-react';
 
 const Editorial = ({ secureUrl, thumbnailUrl, duration: initialDuration = 0 }) => {
   const videoRef = useRef(null);
@@ -16,6 +16,9 @@ const Editorial = ({ secureUrl, thumbnailUrl, duration: initialDuration = 0 }) =
   const [isBuffering, setIsBuffering] = useState(false);
   const [showVolumeSlider, setShowVolumeSlider] = useState(false);
 
+  // Check if video is available
+  const hasVideo = secureUrl && secureUrl.trim() !== '';
+
   // Extract actual URL from thumbnail HTML string
   const extractThumbnail = (html) => {
     if (!html) return '';
@@ -25,6 +28,40 @@ const Editorial = ({ secureUrl, thumbnailUrl, duration: initialDuration = 0 }) =
   };
 
   const actualThumbnailUrl = extractThumbnail(thumbnailUrl);
+
+  // If no video, show coming soon
+  if (!hasVideo) {
+    return (
+      <div className="relative w-full max-w-4xl mx-auto rounded-xl overflow-hidden shadow-2xl bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+        <div className="w-full aspect-video flex items-center justify-center bg-black">
+          {/* Coming Soon Content */}
+          <div className="text-center p-8">
+            <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Clock className="text-white text-3xl" />
+            </div>
+            
+            <h2 className="text-4xl font-bold text-white mb-4">
+              Editorial <span className="text-orange-400">Coming Soon</span>
+            </h2>
+            
+            <p className="text-xl text-gray-300 mb-6 max-w-md mx-auto">
+              We're preparing an amazing video editorial for this problem. Stay tuned for detailed explanations and solutions!
+            </p>
+            
+            <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-4 max-w-sm mx-auto">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse"></div>
+                <span className="text-orange-400 font-semibold">In Development</span>
+              </div>
+              <p className="text-gray-400 text-sm">
+                Check back soon for step-by-step video solutions
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Format seconds to MM:SS or HH:MM:SS
   const formatTime = (seconds) => {
