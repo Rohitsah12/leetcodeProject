@@ -59,7 +59,7 @@ const Redeem = () => {
       name: 'IndieCode Complete Bundle',
       description: 'All IndieCode goodies in one amazing package',
       requiredScore: 3000,
-      image: 'https://res.cloudinary.com/dltqzdtfh/image/upload/v1753591300/indiecodebundle_d8tgiq.png',
+      image: 'https://res.cloudinary.com/dltqzdtfh/image/upload/v1753596196/indiecodebundle_mt05ea.png',
       category: 'Bundle',
       color: 'from-orange-500 to-red-600',
       icon: Gift,
