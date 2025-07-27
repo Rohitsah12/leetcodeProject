@@ -20,64 +20,152 @@ const createProblem = async (req, res) => {
   } = req.body;
 
   try {
+    // Input validation
+    if (!title || !description || !difficulty || !visibleTestCases || !hiddenTestCases || !startCode || !referenceSolution) {
+      return res.status(400).json({
+        message: "Missing required fields",
+        required: ["title", "description", "difficulty", "visibleTestCases", "hiddenTestCases", "startCode", "referenceSolution"]
+      });
+    }
+
+    if (!Array.isArray(visibleTestCases) || visibleTestCases.length === 0) {
+      return res.status(400).json({
+        message: "visibleTestCases must be a non-empty array"
+      });
+    }
+
+    if (!Array.isArray(referenceSolution) || referenceSolution.length === 0) {
+      return res.status(400).json({
+        message: "referenceSolution must be a non-empty array"
+      });
+    }
+
     // Validate reference solutions against visible test cases
     for (const solution of referenceSolution) {
+      if (!solution.language || !solution.completeCode) {
+        return res.status(400).json({
+          message: "Each referenceSolution must have 'language' and 'completeCode' fields"
+        });
+      }
+
       const languageId = getLanguageById(solution.language);
-      const submissions = visibleTestCases.map(testcase => ({
-        source_code: solution.completeCode,
-        language_id: languageId,
-        stdin: testcase.input,
-        expected_output: testcase.output
-      }));
+      if (!languageId) {
+        return res.status(400).json({
+          message: "Invalid language specified in referenceSolution",
+          language: solution.language,
+          supportedLanguages: ["c++", "java", "javascript"]
+        });
+      }
+
+      // Prepare submissions for validation
+      const submissions = visibleTestCases.map(testcase => {
+        if (!testcase.input || !testcase.output) {
+          throw new Error("Each test case must have 'input' and 'output' fields");
+        }
+        
+        return {
+          source_code: solution.completeCode,
+          language_id: languageId,
+          stdin: testcase.input,
+          expected_output: testcase.output.toString().trim()
+        };
+      });
+
+      console.log(`Validating ${solution.language} solution with ${submissions.length} test cases...`);
 
       const submitResult = await submitBatch(submissions);
+      
+      if (!submitResult || !Array.isArray(submitResult)) {
+        return res.status(502).json({
+          message: "Failed to submit test cases to judge",
+          language: solution.language
+        });
+      }
+
       const tokens = submitResult.map(item => item.token);
       
-      // Check results after a short delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Wait for compilation and execution
+      await new Promise(resolve => setTimeout(resolve, 3000)); // Increased wait time
       
       const testResults = await submitToken(tokens);
-      
-      for (const result of testResults) {
-        if (result.status.id !== 3) { // 3 = Accepted
+
+      // Validate results
+      for (let i = 0; i < testResults.length; i++) {
+        const result = testResults[i];
+        
+        if (result.status?.id !== 3) { // 3 = Accepted
           return res.status(400).json({
             message: "Reference solution failed validation",
             details: {
               language: solution.language,
-              testCase: result.stdin,
-              expected: result.expected_output,
-              actual: result.stdout,
-              error: result.stderr
+              testCaseIndex: i,
+              testCaseInput: result.stdin,
+              expected: submissions[i].expected_output,
+              actual: result.stdout?.trim() || "No output",
+              error: result.stderr || "No error message",
+              compileOutput: result.compile_output || "No compile output",
+              status: result.status?.description || "Unknown status",
+              statusId: result.status?.id
+            }
+          });
+        }
+
+        // Additional output validation
+        const actualOutput = result.stdout?.trim() || "";
+        const expectedOutput = submissions[i].expected_output;
+        
+        if (actualOutput !== expectedOutput) {
+          return res.status(400).json({
+            message: "Output mismatch in reference solution",
+            details: {
+              language: solution.language,
+              testCaseIndex: i,
+              expected: expectedOutput,
+              actual: actualOutput
             }
           });
         }
       }
+
+      console.log(`✅ ${solution.language} solution validated successfully`);
     }
-    
-    
-    // Create problem in database
+
+    // All validations passed, create the problem
     const problem = await Problem.create({
       title,
       description,
       difficulty,
-      tags,
-      companies,
-      hints,    
-      constraints,
+      tags: tags || [],
+      companies: companies || [],
+      hints: hints || [],
+      constraints: constraints || [],
       visibleTestCases,
       hiddenTestCases,
       startCode,
       referenceSolution,
-      problemCreator: req.result._id
+      problemCreator: req.result._id,
+      createdAt: new Date(),
+      updatedAt: new Date()
     });
 
     res.status(201).json({
       message: "Problem created successfully",
-      problemId: problem._id
+      problemId: problem._id,
+      title: problem.title,
+      difficulty: problem.difficulty
     });
+
   } catch (error) {
     console.error("Error creating problem:", error);
-    
+
+    // Handle specific error types
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({
+        message: "Database validation error",
+        details: error.message
+      });
+    }
+
     if (error.response) {
       console.error("Judge0 API error:", error.response.data);
       return res.status(502).json({
@@ -85,13 +173,21 @@ const createProblem = async (req, res) => {
         details: error.response.data
       });
     }
-    
-    res.status(400).json({
-      message: "Problem creation failed",
-      error: error.message
+
+    if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND') {
+      return res.status(502).json({
+        message: "Unable to connect to online judge service"
+      });
+    }
+
+    res.status(500).json({
+      message: "Internal server error",
+      error: process.env.NODE_ENV === 'development' ? error.message : "Something went wrong"
     });
   }
 };
+
+
 
 
 // controllers/problemController.js

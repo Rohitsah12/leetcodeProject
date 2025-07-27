@@ -4,8 +4,10 @@ const axios = require('axios');
 const getLanguageById = (lang) => {
   const language = {
     "c++": 54,
+    "cpp": 54,
     "java": 62,
-    "javascript": 63
+    "javascript": 63,
+    "js": 63
   };
   return language[lang.toLowerCase()];
 };
@@ -19,7 +21,7 @@ const submitBatch = async (submissions) => {
       base64_encoded: 'false'
     },
     headers: {
-      'x-rapidapi-key':process.env.JUDJE0_KEY,
+      'x-rapidapi-key': process.env.JUDGE0_KEY, // Fixed typo
       'x-rapidapi-host': 'judge0-ce.p.rapidapi.com',
       'Content-Type': 'application/json'
     },
@@ -51,7 +53,7 @@ const submitToken = async (resultToken) => {
       fields: '*'
     },
     headers: {
-      'x-rapidapi-key': '44a8b373fcmsh59f6431ae62bf12p1042a2jsn2fa9e8e04fbb',
+      'x-rapidapi-key': process.env.JUDGE0_KEY, // Fixed: use env variable
       'x-rapidapi-host': 'judge0-ce.p.rapidapi.com'
     }
   };
@@ -66,12 +68,33 @@ const submitToken = async (resultToken) => {
     }
   };
 
-  while (true) {
-    const result = await fetchData();
-    const isResultReady = result.submissions.every((r) => r.status_id > 2);
-    if (isResultReady) return result.submissions;
-    await waiting(1000);
+  let attempts = 0;
+  const maxAttempts = 30; // Prevent infinite loops
+
+  while (attempts < maxAttempts) {
+    try {
+      const result = await fetchData();
+      const isResultReady = result.submissions.every((r) => r.status?.id > 2);
+      
+      if (isResultReady) {
+        return result.submissions;
+      }
+      
+      await waiting(1000);
+      attempts++;
+    } catch (error) {
+      console.error(`Polling attempt ${attempts + 1} failed:`, error.message);
+      attempts++;
+      
+      if (attempts >= maxAttempts) {
+        throw new Error("Maximum polling attempts reached");
+      }
+      
+      await waiting(2000); // Wait longer on error
+    }
   }
+
+  throw new Error("Polling timeout: Results not ready after maximum attempts");
 };
 
 module.exports = { getLanguageById, submitBatch, submitToken };
