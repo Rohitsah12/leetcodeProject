@@ -3,6 +3,7 @@ import CollegeNavbar from '../components/Landing/CollegeNavbar';
 import { Plus, UserX, UserCheck } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import Footer from "../components/Landing/Footer";
 
 
 const HoverEffect = ({ items, className = "" }) => {
@@ -138,9 +139,7 @@ const ManageStudent = () => {
         <HoverEffect items={studentOptions}  />
       </div>
       
-      <div className='border-t border-orange-500/30 text-center p-6 mt-10'>
-        <span className='text-neutral-400'>Copyright © 2025 College Portal</span>
-      </div>
+      <Footer />
     </div>
   );
 };

@@ -28,6 +28,7 @@ import UpdateStudent from './components/ManageStudents/UpdateStudent';
 import Students from './pages/Students';
 import EventTracker from './pages/EventTracker';
 import AuthSuccess from './components/AuthSuccess';
+import AssignTask from './components/ManageStudents/AssignTask';
 
 const App = () => {
   const dispatch = useDispatch();
@@ -170,6 +171,14 @@ const App = () => {
         element={
           isCollegeAuthenticated ? 
             <ManageStudent /> : 
+            <Navigate to='/collegeLogin' replace />
+        } 
+      />
+      <Route 
+        path='/college/assignTask' 
+        element={
+          isCollegeAuthenticated ? 
+            <AssignTask /> : 
             <Navigate to='/collegeLogin' replace />
         } 
       />

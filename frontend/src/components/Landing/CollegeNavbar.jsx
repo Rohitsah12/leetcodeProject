@@ -71,7 +71,11 @@ const CollegeNavbar = () => {
           >
             Students
           </NavLink>
-          <NavLink to="/*" style={getActiveStyle}>
+          <NavLink to={
+              isCollegeAuthenticated
+                ? "/college/assignTask"
+                : "/collegeSignup"
+            } style={getActiveStyle}>
             Assign Task
           </NavLink>
 
