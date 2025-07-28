@@ -202,6 +202,12 @@ function ProblemPage() {
     return str.charAt(0).toUpperCase() + str.slice(1);
   };
 
+  // Check if a problem is a demo problem (first 3 problems from the original problems array)
+  const isDemoProblem = (problemId) => {
+    const originalIndex = problems.findIndex(p => p._id === problemId);
+    return originalIndex >= 0 && originalIndex < 3;
+  };
+
   // Get only first 6 companies and topics for display
   const visibleCompanies = companies.slice(0, 6);
   const visibleTopics = topics.slice(0, 6);
@@ -475,12 +481,19 @@ function ProblemPage() {
                     }}
                   >
                     <div className="flex-1">
-                      <NavLink
-                        to={`/problem/${problem._id}`}
-                        className="text-lg font-semibold transition-colors duration-200 cursor-pointer hover:text-orange-500"
-                      >
-                        {problem.title}
-                      </NavLink>
+                      <div className="flex items-center gap-3 mb-2">
+                        <NavLink
+                          to={`/problem/${problem._id}`}
+                          className="text-lg font-semibold transition-colors duration-200 cursor-pointer hover:text-orange-500"
+                        >
+                          {problem.title}
+                        </NavLink>
+                        {isDemoProblem(problem._id) && (
+                          <span className="px-2 py-1 text-xs font-bold bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full shadow-lg border border-blue-400 animate-pulse">
+                            DEMO
+                          </span>
+                        )}
+                      </div>
 
                       <div className="flex flex-wrap gap-2 mt-2">
                         {/* Companies */}
