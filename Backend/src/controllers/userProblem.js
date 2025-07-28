@@ -194,15 +194,18 @@ const createProblem = async (req, res) => {
 const updateProblem = async (req, res) => {
   try {
     const { id } = req.params;
+    console.log('Received update request for problem ID:', id);
+    console.log('Request body:', JSON.stringify(req.body, null, 2));
     
-    if (!id) {
+    // Validate problem ID format
+    if (!id || !id.match(/^[0-9a-fA-F]{24}$/)) {
       return res.status(400).json({ 
         success: false, 
-        message: "Problem ID is required" 
+        message: "Invalid problem ID format" 
       });
     }
 
-    // Validate that the problem exists
+    // Check if problem exists
     const existingProblem = await Problem.findById(id);
     if (!existingProblem) {
       return res.status(404).json({ 
@@ -225,21 +228,29 @@ const updateProblem = async (req, res) => {
       referenceSolution 
     } = req.body;
 
-    // Validate required fields
+    // Enhanced validation
     if (!title?.trim()) {
       return res.status(400).json({ 
         success: false, 
-        message: "Title is required" 
+        message: "Title is required and cannot be empty" 
       });
     }
 
     if (!description?.trim()) {
       return res.status(400).json({ 
         success: false, 
-        message: "Description is required" 
+        message: "Description is required and cannot be empty" 
       });
     }
 
+    if (!['easy', 'medium', 'hard'].includes(difficulty)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Difficulty must be 'easy', 'medium', or 'hard'" 
+      });
+    }
+
+    // Validate test cases
     if (!visibleTestCases || !Array.isArray(visibleTestCases) || visibleTestCases.length === 0) {
       return res.status(400).json({ 
         success: false, 
@@ -254,31 +265,98 @@ const updateProblem = async (req, res) => {
       });
     }
 
-    console.log('Updating problem with ID:', id);
-    console.log('Update data:', { title, difficulty, tags: tags?.length });
+    // Validate visible test cases structure
+    for (let i = 0; i < visibleTestCases.length; i++) {
+      const testCase = visibleTestCases[i];
+      if (!testCase.input?.trim() || !testCase.output?.trim() || !testCase.explanation?.trim()) {
+        return res.status(400).json({
+          success: false,
+          message: `Visible test case ${i + 1} is incomplete. All fields (input, output, explanation) are required.`
+        });
+      }
+    }
 
-    // Update the problem
+    // Validate hidden test cases structure
+    for (let i = 0; i < hiddenTestCases.length; i++) {
+      const testCase = hiddenTestCases[i];
+      if (!testCase.input?.trim() || !testCase.output?.trim()) {
+        return res.status(400).json({
+          success: false,
+          message: `Hidden test case ${i + 1} is incomplete. Both input and output are required.`
+        });
+      }
+    }
+
+    // Validate code templates
+    if (!startCode || !Array.isArray(startCode) || startCode.length !== 3) {
+      return res.status(400).json({
+        success: false,
+        message: "Start code for all three languages (C++, Java, JavaScript) is required"
+      });
+    }
+
+    if (!referenceSolution || !Array.isArray(referenceSolution) || referenceSolution.length !== 3) {
+      return res.status(400).json({
+        success: false,
+        message: "Reference solutions for all three languages (C++, Java, JavaScript) are required"
+      });
+    }
+
+    // Prepare update data
+    const updateData = {
+      title: title.trim(),
+      description: description.trim(),
+      difficulty,
+      tags: Array.isArray(tags) ? tags.filter(tag => tag && tag.trim()) : [],
+      companies: Array.isArray(companies) ? companies.filter(company => company && company.trim()) : [],
+      hints: Array.isArray(hints) ? hints.filter(hint => hint && hint.trim()) : [],
+      constraints: Array.isArray(constraints) ? constraints.filter(constraint => constraint && constraint.trim()) : [],
+      visibleTestCases: visibleTestCases.map(tc => ({
+        input: tc.input.trim(),
+        output: tc.output.trim(),
+        explanation: tc.explanation.trim()
+      })),
+      hiddenTestCases: hiddenTestCases.map(tc => ({
+        input: tc.input.trim(),
+        output: tc.output.trim()
+      })),
+      startCode: startCode.map(sc => ({
+        language: sc.language,
+        initialCode: sc.initialCode || ""
+      })),
+      referenceSolution: referenceSolution.map(rs => ({
+        language: rs.language,
+        completeCode: rs.completeCode || ""
+      })),
+      updatedAt: new Date()
+    };
+
+    console.log('Updating problem with data:', {
+      id,
+      title: updateData.title,
+      difficulty: updateData.difficulty,
+      tagsCount: updateData.tags.length,
+      visibleTestCasesCount: updateData.visibleTestCases.length,
+      hiddenTestCasesCount: updateData.hiddenTestCases.length
+    });
+
+    // Perform the update
     const updatedProblem = await Problem.findByIdAndUpdate(
       id,
-      {
-        title: title.trim(),
-        description: description.trim(),
-        difficulty,
-        tags: Array.isArray(tags) ? tags : [],
-        companies: Array.isArray(companies) ? companies : [], 
-        hints: Array.isArray(hints) ? hints : [],
-        constraints: Array.isArray(constraints) ? constraints : [],
-        visibleTestCases,
-        hiddenTestCases,
-        startCode,
-        referenceSolution,
-        updatedAt: new Date()
-      },
+      updateData,
       { 
         runValidators: true, 
-        new: true // Return the updated document
+        new: true,
+        context: 'query'
       }
     );
+
+    if (!updatedProblem) {
+      return res.status(404).json({
+        success: false,
+        message: "Problem not found or could not be updated"
+      });
+    }
 
     console.log('Problem updated successfully:', updatedProblem._id);
 
@@ -292,10 +370,11 @@ const updateProblem = async (req, res) => {
     console.error('Error updating problem:', err);
     
     if (err.name === 'ValidationError') {
+      const validationErrors = Object.values(err.errors).map(e => e.message);
       return res.status(400).json({
         success: false,
-        message: "Validation error",
-        errors: Object.values(err.errors).map(e => e.message)
+        message: "Validation failed",
+        errors: validationErrors
       });
     }
 
@@ -306,15 +385,21 @@ const updateProblem = async (req, res) => {
       });
     }
 
+    if (err.code === 11000) {
+      return res.status(409).json({
+        success: false,
+        message: "A problem with this title already exists"
+      });
+    }
+
     res.status(500).json({
       success: false,
-      message: "Internal server error",
+      message: "Internal server error occurred while updating the problem",
       error: process.env.NODE_ENV === 'development' ? err.message : undefined
     });
   }
 };
 
-module.exports = { updateProblem };
 
 
 const deleteProblem = async(req,res)=>{

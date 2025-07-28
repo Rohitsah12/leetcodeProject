@@ -88,7 +88,7 @@ const Hero = () => {
       </div>
 
       {/* Floating tech icons */}
-      <FloatingIcons />
+      {/* <FloatingIcons /> */}
 
       {/* Hero content */}
       <div className="relative z-10 max-w-5xl mx-auto">

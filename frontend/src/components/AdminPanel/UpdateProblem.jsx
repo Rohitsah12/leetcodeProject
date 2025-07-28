@@ -252,7 +252,7 @@ const problemSchema = z.object({
       z.object({
         input: z.string().min(1, "Input is required"),
         output: z.string().min(1, "Output is required"),
-        explaination: z.string().min(1, "Explanation is required"),
+        explanation: z.string().min(1, "Explanation is required"),
       })
     )
     .min(1, "At least one visible test case required"),
@@ -317,7 +317,7 @@ export default function UpdateProblem() {
       companies: [],
       hints: [],
       constraints: [],
-      visibleTestCases: [{ input: "", output: "", explaination: "" }],
+      visibleTestCases: [{ input: "", output: "", explanation: "" }],
       hiddenTestCases: [{ input: "", output: "" }],
       startCode: [
         { language: "C++", initialCode: "" },
@@ -397,10 +397,10 @@ export default function UpdateProblem() {
               ? data.visibleTestCases.map((testCase) => ({
                   input: testCase.input || "",
                   output: testCase.output || "",
-                  explaination:
-                    testCase.explanation || testCase.explaination || "",
+                  explanation:
+                    testCase.explanation || testCase.explanation || "",
                 }))
-              : [{ input: "", output: "", explaination: "" }],
+              : [{ input: "", output: "", explanation: "" }],
 
           hiddenTestCases:
             Array.isArray(data.hiddenTestCases) &&
@@ -825,7 +825,7 @@ export default function UpdateProblem() {
                 <button
                   type="button"
                   onClick={() =>
-                    addVis({ input: "", output: "", explaination: "" })
+                    addVis({ input: "", output: "", explanation: "" })
                   }
                   className="flex items-center gap-2 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
                 >
@@ -898,14 +898,14 @@ export default function UpdateProblem() {
                           Explanation
                         </label>
                         <textarea
-                          {...register(`visibleTestCases.${i}.explaination`)}
+                          {...register(`visibleTestCases.${i}.explanation`)}
                           placeholder="Explain the test case..."
                           className="w-full p-2 bg-gray-800 rounded border border-gray-600 text-sm"
                           rows={3}
                         />
-                        {errors.visibleTestCases?.[i]?.explaination && (
+                        {errors.visibleTestCases?.[i]?.explanation && (
                           <p className="text-red-400 text-xs mt-1">
-                            {errors.visibleTestCases[i].explaination.message}
+                            {errors.visibleTestCases[i].explanation.message}
                           </p>
                         )}
                       </div>
@@ -1083,14 +1083,14 @@ export default function UpdateProblem() {
               Cancel
             </button>
 
-            <button
-              type="submit"
-              disabled={submitting || Object.keys(errors).length > 0}
-              className="px-8 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold rounded-lg shadow-lg hover:from-orange-600 hover:to-orange-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-            >
-              <Save size={16} />
-              Update Problem
-            </button>
+              <button
+                type="submit"
+                disabled={submitting || Object.keys(errors).length > 0}
+                className="px-8 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold rounded-lg shadow-lg hover:from-orange-600 hover:to-orange-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                <Save size={16} />
+                Update Problem
+              </button>
           </motion.div>
         </form>
       </motion.main>
